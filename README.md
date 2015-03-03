@@ -18,19 +18,31 @@ These scripts will evolve a little but thier current usage is shown.
 
 Boot VM's from my steering file.
 
-	python booting.py --input $CLUSTER_DEF \
-		--output $CLUSTER_STATE
+    osweint_buildup \
+        --cfg $OS_CFG \
+        --steering $STEERING_FILE \
+        --state $CLUSTER_STATE
 
 Block until all VM's are booted, and fix ssh keys to log in as root.
 
-	python hostnames.py --input $CLUSTER_STATE \
-		--output $CLUSTER_STATE
+    osweint_debounce \
+        --cfg $OS_CFG \
+        --state $CLUSTER_STATE
+
 
 To shutdown all VM's after tests have run:
 
-	python shuttingdown.py --bysession --output $CLUSTER_STATE
+	osweint_teardown \
+        --cfg $OS_CFG \
+        --state  $CLUSTER_STATE \
+        --bysession  
 
-I will put these in github very soon.
+Or alternatively if you wish t kill all VM's started by this script:
+
+    osweint_teardown \
+        --cfg $OS_CFG \
+        --state  $CLUSTER_STATE \
+        --all  
 
 ==ROADMAP==
 
