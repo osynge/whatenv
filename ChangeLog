@@ -1,2 +1,8 @@
+0.0.2
+ - Added config file option
+ - Refactored the config files.
+ - Added example steering file.
+ - Added example config
+
 0.0.1 
  - Initial version

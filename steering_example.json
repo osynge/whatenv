@@ -1,0 +1,50 @@
+{
+    "label" : {
+        "a1de224d-a5af-4cbf-9ca1-74e23f838078" :{
+                "CEPH_LAYOUT" : ["OSD","MON"]
+            },
+        "95d5743f-0202-4508-926b-45a5c34ca151" :{
+                "CEPH_LAYOUT" : ["CDEPLOY"]
+            }
+            
+    },
+    "images": {
+        "4c78fed1-9986-43a0-8215-297438671214": 
+            {
+                "OS_IMAGE_NAME": "SLES12"
+            }
+        },
+    "flavor": { 
+        "eba0b488-00ad-4046-9990-648ebdf8f56e" : 
+            {   
+                "OS_FLAVOR_NAME" : "m1.tiny"
+            },
+        "48b1004c-6f3e-4712-bf05-4db89eb2187d" : 
+            {   
+                "OS_FLAVOR_NAME" : "m1.medium"
+            }
+            
+            
+        },
+    "instances" : { "bb4089cf-b2fc-4332-9217-4d4add6a0391" : {
+            "uuid_image" : "4c78fed1-9986-43a0-8215-297438671214",
+            "uuid_flavour" : "48b1004c-6f3e-4712-bf05-4db89eb2187d",
+            "usr_label" : ["a1de224d-a5af-4cbf-9ca1-74e23f838078"]
+        },
+        "77fe8791-dbc1-46cd-a42c-91b0f978699b": {
+            "uuid_image" : "4c78fed1-9986-43a0-8215-297438671214",
+            "uuid_flavour" : "48b1004c-6f3e-4712-bf05-4db89eb2187d",
+            "usr_label" : ["a1de224d-a5af-4cbf-9ca1-74e23f838078"]
+        },
+        "8afc7048-92e1-4618-9a83-a60071d68525" : {
+            "uuid_image" : "4c78fed1-9986-43a0-8215-297438671214",
+            "uuid_flavour" : "48b1004c-6f3e-4712-bf05-4db89eb2187d",
+            "usr_label" : ["a1de224d-a5af-4cbf-9ca1-74e23f838078"]
+        },
+        "24f140b8-8446-46c2-9d80-58614dcfb5e4" : {
+            "uuid_image" : "4c78fed1-9986-43a0-8215-297438671214",
+            "uuid_flavour" : "eba0b488-00ad-4046-9990-648ebdf8f56e",
+            "usr_label" : ["95d5743f-0202-4508-926b-45a5c34ca151"]
+        }
+    }
+}

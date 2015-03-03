@@ -62,6 +62,10 @@ setup(name=Application,
         'Programming Language :: Python',
         ],
     scripts=['osweint_teardown', 'osweint_buildup', 'osweint_debounce'],
-    data_files=[('/usr/share/doc/%s-%s' % (Application,version),['README.md','LICENSE','ChangeLog']),
+    data_files=[('/usr/share/doc/%s-%s' % (Application,version),['README.md',
+            'LICENSE',
+            'ChangeLog',
+            'steering_example.json',
+            'osweint_example.cfg']),
         ]    
 )

@@ -1,4 +1,7 @@
 include README.md
 include ChangeLog
 include LICENSE
+include steering_example.json
+include osweint_example.cfg 
+
 include tests/*.py
