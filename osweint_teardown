@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+import osweint.shuttingdown
+import logging
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    osweint.shuttingdown.main()
