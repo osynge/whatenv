@@ -1,45 +1,47 @@
 import novaclient.v1_1.client as nvclient
-from credentials import get_nova_creds
 import json
 from environ import getenviromentvars
 import optparse
 import logging
 import sys
 from __version__ import version
+import config
 
-creds = get_nova_creds()
-nova = nvclient.Client(**creds)
-def sever_list_clear():
-	server_list = nova.servers.list()
-	for server in server_list:
-		print "prcessing:%s" % (server.id)
-		if server.name[:8] == "whenenv-":
-			print "deleting:%s" % (server.name)
-			server.delete()
-#sever_list_clear()
 
-def shuttdown_by_id(catalogue,ident):
-	#print ident
-	#print catalogue[ident]
-	server_list = nova.servers.list()
-	for server in server_list:
-		#print "prcessing:%s" % (server.id)
-		if server.id == catalogue[ident]['OS_ID']:
-			print "deleting:%s" % (server.name)
-			server.delete()
-			print "server.status:%s" % (server.status)
+
+def sever_list_clear(cfg):
+    log = logging.getLogger("teardown.all")
+    creds = cfg.get_nova_creds()
+    nova = nvclient.Client(**creds)
+    server_list = nova.servers.list()
+    for server in server_list:
+        log.debug("prcessing:%s" % (server.id))
+        if server.name[:8] == "whenenv-":
+            log.debug("deleting:%s" % (server.name))
+            server.delete()
+
+def shuttdown_by_id(cfg,catalogue,ident):
+    log = logging.getLogger("teardown.id")
+    #print ident
+    #print catalogue[ident]
+    creds = cfg.get_nova_creds()
+    nova = nvclient.Client(**creds)
+    server_list = nova.servers.list()
+    for server in server_list:
+        #print "prcessing:%s" % (server.id)
+        if server.id == catalogue[ident]['OS_ID']:
+            log.debug("deleting:%s" % (server.name))
+            server.delete()
+            log.debug("server.status:%s" % (server.status))
 def read_input(filename):
-	f = open(filename)
-	json_string = f.read()
-	loadedfile = json.loads(json_string)
-	return loadedfile
-
-def prototype(input_name):
-	#print getenviromentvars()
-	sever_list_clear()
+    f = open(filename)
+    json_string = f.read()
+    loadedfile = json.loads(json_string)
+    return loadedfile
 
 
-def process_actions(input_name,output_name):
+
+def process_actions(cfg,input_name):
     env_set_termial = set(["TERMINAL_SSH_CONNECTION",
         "TERMINAL_XAUTHLOCALHOSTNAME",
         "TERMINAL_GPG_TTY"])
@@ -65,9 +67,7 @@ def process_actions(input_name,output_name):
     if jenkins_use:
         matchset = matchset.union(env_set_jenkins)
     
-    
-    
-    output_data = read_input(output_name)
+    output_data = read_input(input_name)
     delete_set = set()
     for key in output_data:
         contnent = output_data[key].keys()
@@ -85,9 +85,8 @@ def process_actions(input_name,output_name):
             difference = True
         if not difference:
             delete_set.add(key)
-    print delete_set
     for todel in delete_set:
-        shuttdown_by_id(output_data,todel)
+        shuttdown_by_id(cfg, output_data, todel)
             
 
 def main():
@@ -99,14 +98,18 @@ def main():
     p.add_option('-v', '--verbose', action ='count',help='Change global log level, increasing log output.', metavar='LOGFILE')
     p.add_option('-q', '--quiet', action ='count',help='Change global log level, decreasing log output.', metavar='LOGFILE')
     p.add_option('-C', '--config-file', action ='store',help='Configuration file.', metavar='CFG_FILE')
-    p.add_option('--input', action ='store',help='Called by udev $name')
-    p.add_option('--output', action ='store',help='List all known instalations')
-    p.add_option('--prototype', action ='store_true',help='List all known instalations')
-    p.add_option('--bysession', action ='store_true',help='List all known instalations')
+    p.add_option('--state', action ='store',help='State file')
+    p.add_option('--all', action ='store_true',help='teardown all VM')
+    p.add_option('--bysession', action ='store_true',help='tear down VM for this session')
+    p.add_option('--cfg', action ='store',help='Openstack settings')
+    logFile = None
     input_file = None
     output_file = None
     actions = set()
     requires = set()
+    
+    cfg = config.cfg()
+    
     options, arguments = p.parse_args()
     # Set up log file
     LoggingLevel = logging.WARNING
@@ -133,28 +136,40 @@ def main():
         LoggingLevel = logging.CRITICAL
 
     if options.logcfg:
-        output['pmpman.path.cfg'] = options.logcfg
-
+        logFile = options.log_config
+    if logFile != None:
+        if os.path.isfile(str(options.log_config)):
+            logging.config.fileConfig(options.log_config)
+        else:
+            logging.basicConfig(level=LoggingLevel)
+            log = logging.getLogger("main")
+            log.error("Logfile configuration file '%s' was not found." % (options.log_config))
+            sys.exit(1)
+    else:
+        logging.basicConfig(level=LoggingLevel)
     log = logging.getLogger("main")
-    if options.prototype:
-        actions.add("prototype")
+    
+    if options.cfg:
+        cfg.read(options.cfg)
+    
+    if options.all:
+        actions.add("all")
     if options.bysession:
         actions.add("bysession")
-    
-    if options.input:
-        input_file = options.input
+        requires.add("state")
+
+    if options.state:
+        input_file = options.state
         
-    if options.output:
-        output_file = options.output
 
     if options.database:
         output['pmpman.rdms'] = options.database
     
-    if "prototype" in actions:
-        prototype(input_file)
+    if "all" in actions:
+        sever_list_clear(cfg)
         sys.exit (0)
     if "bysession" in actions:
-        process_actions(str(input_file),output_file)
+        process_actions(cfg, str(input_file))
     
     return 
 if __name__ == "__main__":

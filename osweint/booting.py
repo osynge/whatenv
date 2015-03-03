@@ -1,69 +1,16 @@
 import os
 import time
 import novaclient.v1_1.client as nvclient
-from credentials import get_nova_creds
+
+from novaclient.exceptions import OverLimit
 import uuid
 import json
 import sys
 from environ import getenviromentvars
 import optparse
 import logging
+import config
 from __version__ import version
-
-def prototype():
-    creds = get_nova_creds()
-    nova = nvclient.Client(**creds)
-    if not nova.keypairs.findall(name="mykey"):
-        with open(os.path.expanduser('~/.ssh/id_rsa.pub')) as fpubkey:
-            nova.keypairs.create(name="mykey", public_key=fpubkey.read())
-
-    image = nova.images.find(name="SLES12")
-    flavor = nova.flavors.find(name="m1.tiny")
-
-    generator = str(uuid.uuid4())
-
-    metadata = {}
-    metadata.update(getenviromentvars())
-
-
-    generator = str(uuid.uuid4())
-    metadata['WE_ID'] = generator
-
-
-
-    instance_name = "whenenv-%s" % (generator)
-
-
-    metadata['OS_NAME'] = instance_name
-
-    #print dir(image)
-
-    metadata['OS_IMAGE_ID'] = str(image.id)
-    metadata['OS_IMAGE_NAME'] = str(image.name)
-    metadata['OS_IMAGE_HUMAN_NAME'] = str(image.human_id)
-
-    instance = nova.servers.create(name=instance_name, image=image, flavor=flavor, key_name="mykey",metadata =  metadata)
-    #print metadata
-    #instance.metadata.update(metadata)
-    #print metadata
-
-    # Poll at 5 second intervals, until the status is no longer 'BUILD'
-    status = instance.status
-    while status == 'BUILD':
-        time.sleep(5)
-        # Retrieve the instance again so the status field updates
-        instance = nova.servers.get(instance.id)
-        status = instance.status
-    print "status: %s" % instance.id
-    print "status: %s" % status
-    metadata['OS_ID'] = unicode(instance.id)
-
-
-    output_image = {generator : metadata}
-    filename = "jenkins-whenenv-booting.json"
-    f = open(filename, 'w')
-    json.dump(output_image, f, sort_keys=True, indent=4)
-
 
 def read_input(filename):
     f = open(filename)
@@ -71,7 +18,7 @@ def read_input(filename):
     loadedfile = json.loads(json_string)
     return loadedfile
 
-def bootimages(input_data):
+def bootimages(cfg,input_data):
     output = {}
     images_data = input_data.get("images", {})
     if len(images_data) == 0: 
@@ -86,8 +33,7 @@ def bootimages(input_data):
         return False
     
     label_data = input_data.get("label", {})
-    
-    creds = get_nova_creds()
+    creds = cfg.get_nova_creds()
     nova = nvclient.Client(**creds)
     if not nova.keypairs.findall(name="mykey"):
         with open(os.path.expanduser('~/.ssh/id_rsa.pub')) as fpubkey:
@@ -154,9 +100,11 @@ def bootimages(input_data):
         boot_args = [instance_name, image, flavor] 
 
         boot_kwargs = {'files': {}, 'userdata': None, 'availability_zone': None, 'nics': [], 'block_device_mapping': {}, 'max_count': 1, 'meta': foo, 'key_name': 'mykey', 'min_count': 1, 'scheduler_hints': {}, 'reservation_id': None, 'security_groups': [], 'config_drive': None}
-
-        instance = nova.servers.create(*boot_args, **boot_kwargs)
-        
+        try:
+            instance = nova.servers.create(*boot_args, **boot_kwargs)
+        except OverLimit, E:
+            print E
+            sys.exit(1)
         metadata['OS_ID'] = unicode(instance.id)
         ourpur[generator] = metadata
         booting.add(generator)
@@ -177,9 +125,9 @@ def bootimages(input_data):
     return ourpur
         
 
-def process_actions(input_name,output_name):
+def process_actions(cfg,input_name,output_name):
     input_data = read_input(input_name)
-    booted = bootimages(input_data)
+    booted = bootimages(cfg, input_data)
     #print json.dumps(booted, sort_keys=True, indent=4)
     try:
         output_data = read_input(output_name)
@@ -198,14 +146,16 @@ def main():
     p.add_option('-v', '--verbose', action ='count',help='Change global log level, increasing log output.', metavar='LOGFILE')
     p.add_option('-q', '--quiet', action ='count',help='Change global log level, decreasing log output.', metavar='LOGFILE')
     p.add_option('-C', '--config-file', action ='store',help='Configuration file.', metavar='CFG_FILE')
-    p.add_option('--input', action ='store',help='Called by udev $name')
-    p.add_option('--output', action ='store',help='List all known instalations')
-    p.add_option('--prototype', action ='store_true',help='List all known instalations')
-
+    p.add_option('--steering', action ='store',help='Steering file to create VM')
+    p.add_option('--state', action ='store',help='State file')
+    p.add_option('--cfg', action ='store',help='Openstack settings')
     input_file = None
     output_file = None
+    file_cfg = None
     actions = set()
     requires = set()
+    logFile = None
+    cfg = config.cfg()
     options, arguments = p.parse_args()
     # Set up log file
     LoggingLevel = logging.WARNING
@@ -230,23 +180,37 @@ def main():
         LoggingLevel = logging.FATAL
     if LoggingLevelCounter >= 5:
         LoggingLevel = logging.CRITICAL
-
     if options.logcfg:
-        output['pmpman.path.cfg'] = options.logcfg
-
+        logFile = options.log_config
+    if logFile != None:
+        if os.path.isfile(str(options.log_config)):
+            logging.config.fileConfig(options.log_config)
+        else:
+            logging.basicConfig(level=LoggingLevel)
+            log = logging.getLogger("main")
+            log.error("Logfile configuration file '%s' was not found." % (options.log_config))
+            sys.exit(1)
+    else:
+        logging.basicConfig(level=LoggingLevel)
     log = logging.getLogger("main")
-    if options.prototype:
-        prototype()
-        sys.exit (0)
-    if options.input:
-        input_file = options.input
+    
+    
+    if options.cfg:
+        cfg.read(options.cfg)
+    
+    if options.steering:
+        input_file = options.steering
         
-    if options.output:
-        output_file = options.output
+    if options.state:
+        output_file = options.state
+    if input_file == None:
+        log.error("No input specified")
+        sys.exit(1)
+    if input_file == None:
+        log.error("No output specified")
+        sys.exit(1)
 
-    if options.database:
-        output['pmpman.rdms'] = options.database
-    process_actions(str(input_file),output_file)
+    process_actions(cfg,str(input_file),output_file)
 
 
     return 

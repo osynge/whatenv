@@ -17,15 +17,16 @@ from __version__ import version
 
 
 def host_operation(addresses,cmd):
+    log = logging.getLogger("host_operation")
     connected = set()
     retry = True
     retry_count = 0
     retry_max = 100
     lastdifference = addresses
-    print "check=%s" % (cmd)
+    log.debug("check=%s" % (cmd))
     while retry:
         retry_count += 1
-        print "retry_count=%s" % (retry_count)
+        log.debug("retry_count=%s" % (retry_count))
         diff_before_check = addresses.difference(connected)
         for address in diff_before_check:
             croc = Command(cmd % (address))
@@ -36,15 +37,15 @@ def host_operation(addresses,cmd):
             time.sleep(1)
         diff_after_check = addresses.difference(connected)
 
-        print "diff_before_check=%s" % (diff_before_check)
-        print "diff_after_check=%s" % (diff_after_check)
+        log.debug("diff_before_check=%s" % (diff_before_check))
+        log.debug("diff_after_check=%s" % (diff_after_check))
         if len(diff_before_check) == 0:
             retry = False
         if len(diff_before_check) > len(diff_after_check):
-            print "extending time out"
+            log.info("extending time out")
             retry_count = 0
         if retry_count > retry_max:
-            print "time out=%s" % (retry_count)
+            log.error("time out=%s" % (retry_count))
             retry = False
     return connected
 
@@ -112,33 +113,17 @@ def update_instance_data(instace):
     output['VM_HOSTNAME'] = list(hostname_short.union(hostname_long))
     return output
 
-
-def get_we_types(input_data):
-    output = {}
-    images_data = input_data.get("images", {})
-    if len(images_data) == 0:
-        return False
-
-    flavor_data = input_data.get("flavor", {})
-    if len(flavor_data) == 0:
-        return False
-
-    instance_data = input_data.get("instances", {})
-    if len(instance_data) == 0:
-        return False
-    return True
-
 def read_input(filename):
     f = open(filename)
     json_string = f.read()
     loadedfile = json.loads(json_string)
     return loadedfile
 
-def process_actions(input_name,output_name):
-    input_data = read_input(input_name)
-    get_we_types(input_data)
-    output_data = read_input(input_name)
-
+def process_actions(file_state):
+    log = logging.getLogger("process_actions")
+    input_data = read_input(file_state)
+    output_data = read_input(file_state)
+    log.debug("here")
     #print output_data
     # Get full list of addresses
     addresses = set()
@@ -148,13 +133,13 @@ def process_actions(input_name,output_name):
             for address in address_list:
                 addresses.add(address)
     pinged = pinghosts(addresses)
-    print "pinged=%s" % ( pinged)
+    log.debug("pinged=%s" % ( pinged))
     # Remove all address from known hosts
     for address in pinged:
         subprocess.call(["ssh-keygen", "-R", address])
     # check all addresses can be connected to.
     connected = sshhosts(pinged)
-    print "connected=%s" % ( connected)
+    log.debug("connected=%s" % ( connected))
 
     for instace in output_data:
         output = update_instance_data(output_data[instace])
@@ -174,12 +159,10 @@ def main():
     p.add_option('-v', '--verbose', action ='count',help='Change global log level, increasing log output.', metavar='LOGFILE')
     p.add_option('-q', '--quiet', action ='count',help='Change global log level, decreasing log output.', metavar='LOGFILE')
     p.add_option('-C', '--config-file', action ='store',help='Configuration file.', metavar='CFG_FILE')
-    p.add_option('--input', action ='store',help='Called by udev $name')
-    p.add_option('--output', action ='store',help='List all known instalations')
-    p.add_option('--prototype', action ='store_true',help='List all known instalations')
-
-    input_file = None
-    output_file = None
+    p.add_option('--state', action ='store',help='State file')
+    p.add_option('--cfg', action ='store',help='Openstack settings')
+    logFile = None
+    file_state = None
     actions = set()
     requires = set()
     options, arguments = p.parse_args()
@@ -206,21 +189,25 @@ def main():
         LoggingLevel = logging.FATAL
     if LoggingLevelCounter >= 5:
         LoggingLevel = logging.CRITICAL
-
     if options.logcfg:
-        output['pmpman.path.cfg'] = options.logcfg
-
+        logFile = options.log_config
+    if logFile != None:
+        if os.path.isfile(str(options.log_config)):
+            logging.config.fileConfig(options.log_config)
+        else:
+            logging.basicConfig(level=LoggingLevel)
+            log = logging.getLogger("main")
+            log.error("Logfile configuration file '%s' was not found." % (options.log_config))
+            sys.exit(1)
+    else:
+        logging.basicConfig(level=LoggingLevel)
     log = logging.getLogger("main")
-    if options.prototype:
-        prototype()
-        sys.exit (0)
-    if options.input:
-        input_file = options.input
 
-    if options.output:
-        output_file = options.output
-    print output_file
-    process_actions(str(input_file),output_file)
+    if options.state:
+        file_state = options.state
+
+    
+    process_actions(str(file_state))
 
 
     return
