@@ -35,7 +35,7 @@ def host_operation(addresses,cmd):
                 continue
             time.sleep(1)
         diff_after_check = addresses.difference(connected)
-        
+
         print "diff_before_check=%s" % (diff_before_check)
         print "diff_after_check=%s" % (diff_after_check)
         if len(diff_before_check) == 0:
@@ -85,8 +85,8 @@ def update_instance_data(instace):
             continue
         hostname_short.add(clean_ssh_hostname(stdout))
     hostname_long = set()
-    for address in addresses:    
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s hostname -f" % (address))        
+    for address in addresses:
+        croc = Command("ssh -o StrictHostKeyChecking=no root@%s hostname -f" % (address))
         rc,stdout,stderr = croc.run(timeout=30)
         if rc != 0:
             continue
@@ -94,7 +94,7 @@ def update_instance_data(instace):
     hostname_short_connected = set()
     for hostname in hostname_short:
         subprocess.call(["ssh-keygen", "-R", hostname])
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s echo" % (address))        
+        croc = Command("ssh -o StrictHostKeyChecking=no root@%s echo" % (hostname))
         rc,stdout,stderr = croc.run(timeout=30)
         if rc != 0:
             continue
@@ -102,12 +102,12 @@ def update_instance_data(instace):
     hostname_long_connected = set()
     for hostname in hostname_long:
         subprocess.call(["ssh-keygen", "-R", hostname])
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s echo" % (address))        
+        croc = Command("ssh -o StrictHostKeyChecking=no root@%s echo" % (hostname))
         rc,stdout,stderr = croc.run(timeout=30)
         if rc != 0:
             continue
         hostname_long_connected.add(hostname)
-    
+
     output = dict(instace)
     output['VM_HOSTNAME'] = list(hostname_short.union(hostname_long))
     return output
@@ -116,15 +116,15 @@ def update_instance_data(instace):
 def get_we_types(input_data):
     output = {}
     images_data = input_data.get("images", {})
-    if len(images_data) == 0: 
+    if len(images_data) == 0:
         return False
-    
+
     flavor_data = input_data.get("flavor", {})
-    if len(flavor_data) == 0: 
+    if len(flavor_data) == 0:
         return False
-    
+
     instance_data = input_data.get("instances", {})
-    if len(instance_data) == 0: 
+    if len(instance_data) == 0:
         return False
     return True
 
@@ -138,7 +138,7 @@ def process_actions(input_name,output_name):
     input_data = read_input(input_name)
     get_we_types(input_data)
     output_data = read_input(input_name)
-    
+
     #print output_data
     # Get full list of addresses
     addresses = set()
@@ -155,7 +155,7 @@ def process_actions(input_name,output_name):
     # check all addresses can be connected to.
     connected = sshhosts(pinged)
     print "connected=%s" % ( connected)
-    
+
     for instace in output_data:
         output = update_instance_data(output_data[instace])
         output_data[instace] = output
@@ -166,7 +166,7 @@ def process_actions(input_name,output_name):
 
 
 def main():
-    
+
     """Runs program and handles command line options"""
     p = optparse.OptionParser(version = "%prog " + boot_version)
     p.add_option('-d', '--database', action ='store', help='Database conection string')
@@ -216,13 +216,13 @@ def main():
         sys.exit (0)
     if options.input:
         input_file = options.input
-        
+
     if options.output:
         output_file = options.output
     print output_file
     process_actions(str(input_file),output_file)
 
 
-    return 
+    return
 if __name__ == "__main__":
-    main() 
+    main()
