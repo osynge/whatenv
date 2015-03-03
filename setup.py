@@ -25,6 +25,12 @@ def determine_path ():
         print "I'm sorry, but something is wrong."
         print "There is no __file__ variable. Please contact the author."
         sys.exit ()
+# we want this module for nosetests
+try:
+    import multiprocessing
+except ImportError:
+    # its not critical if this fails though.
+    pass
 
 
 setup(name=Application,
@@ -35,7 +41,16 @@ setup(name=Application,
     license='Apache Sytle License (2.0)',
     install_requires=[
        "nose >= 1.1.0",
-        ],
+        ],    
+    tests_require=[
+        'coverage >= 3.0',
+        'nose >= 1.1.0',
+        'mock',
+    ],
+    setup_requires=[
+        'nose',
+    ],
+
     test_suite = 'nose.collector',
     url = 'https://github.com/osynge/python-openstack-whenenv-integration.git',
     packages = ['osweint'],
