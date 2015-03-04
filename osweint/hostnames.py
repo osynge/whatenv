@@ -145,7 +145,7 @@ def process_actions(file_state):
         output = update_instance_data(output_data[instace])
         output_data[instace] = output
     #output_data.update(booted)
-    f = open(output_name, 'w')
+    f = open(file_state, 'w')
     json.dump(output_data, f, sort_keys=True, indent=4)
     #print json.dumps(output_data, sort_keys=True, indent=4)
 
