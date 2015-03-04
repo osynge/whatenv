@@ -1,3 +1,7 @@
+0.0.3
+
+ - Fixed bug in debounce
+
 0.0.2
  - Added config file option
  - Refactored the config files.
