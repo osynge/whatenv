@@ -1,3 +1,9 @@
+0.0.6
+
+  - moved to new novaclient.v2 API.
+  - Cleaned up imports.
+  - Reorganised code.
+
 0.0.5
 
   - Added lsblk output to the state file ypdate during debounce.

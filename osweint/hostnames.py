@@ -84,7 +84,7 @@ def main():
     if len(actions) == 0:
         actions.add("legacy")
         requires.add("state")
-        
+
     extra_deps = provides.difference(requires)
     missing_deps = requires.difference(provides)
 
