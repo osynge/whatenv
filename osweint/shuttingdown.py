@@ -8,85 +8,6 @@ import config
 import nvclient_mvc
 
 
-def sever_list_clear(cfg):
-    log = logging.getLogger("teardown.all")
-    creds = cfg.get_nova_creds()
-    nova = nvclient.Client(**creds)
-    server_list = nova.servers.list()
-    for server in server_list:
-        log.debug("prcessing:%s" % (server.id))
-        if server.name[:8] == "whenenv-":
-            log.debug("deleting:%s" % (server.name))
-            server.delete()
-
-def shuttdown_by_id(cfg,catalogue,ident):
-    log = logging.getLogger("teardown.id")
-    #print ident
-    #print catalogue[ident]
-    creds = cfg.get_nova_creds()
-    nova = nvclient.Client(**creds)
-    server_list = nova.servers.list()
-    for server in server_list:
-        #print "prcessing:%s" % (server.id)
-        if server.id == catalogue[ident]['OS_ID']:
-            log.debug("deleting:%s" % (server.name))
-            server.delete()
-            log.debug("server.status:%s" % (server.status))
-def read_input(filename):
-    f = open(filename)
-    json_string = f.read()
-    loadedfile = json.loads(json_string)
-    return loadedfile
-
-
-
-def process_actions(cfg,input_name):
-    env_set_termial = set(["TERMINAL_SSH_CONNECTION",
-        "TERMINAL_XAUTHLOCALHOSTNAME",
-        "TERMINAL_GPG_TTY"])
-    env_set_jenkins = set(["JENKINS_BUILD_TAG",
-        "JENKINS_BUILD_URL",
-        "JENKINS_EXECUTOR_NUMBER",
-        "JENKINS_NODE_NAME",
-        "JENKINS_WORKSPACE"])
-
-    env_var = getenviromentvars()
-    terminal_use = False
-    jenkins_use = False
-    terminal_set = env_set_termial.intersection(env_var)
-    jenkins_set = env_set_jenkins.intersection(env_var)
-    if len(terminal_set) > 0:
-        terminal_use = True
-    if len(jenkins_set) > 0:
-        jenkins_use = True
-
-    matchset = set()
-    if terminal_use:
-        matchset = matchset.union(env_set_termial)
-    if jenkins_use:
-        matchset = matchset.union(env_set_jenkins)
-
-    output_data = read_input(input_name)
-    delete_set = set()
-    for key in output_data:
-        contnent = output_data[key].keys()
-        keys_intersection = matchset.intersection(contnent)
-        if len(keys_intersection) == 0:
-            continue
-        difference = False
-        for intersect in keys_intersection:
-            env_data = env_var[intersect]
-            db_data = output_data[key][intersect]
-            if (env_data == db_data):
-
-                continue
-            print intersect, env_data
-            difference = True
-        if not difference:
-            delete_set.add(key)
-    for todel in delete_set:
-        shuttdown_by_id(cfg, output_data, todel)
-
 
 def main():
 
@@ -161,8 +82,7 @@ def main():
         requires.add("cfg")
 
     if options.bysession:
-        actions.add("bysession")
-        requires.add("state")
+        actions.add("session_del")
         requires.add("cfg")
 
     if options.instance_list:
@@ -202,10 +122,6 @@ def main():
         controler.read_config(cfg)
         controler.connect()
         controler.delete_session_all()
-
-    if "bysession" in actions:
-        process_actions(cfg, str(input_file))
-
 
     if "list" in actions:
 
