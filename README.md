@@ -19,8 +19,10 @@ rich matrix test jobs.
 * Rich cluster state file generation to allow cluster testing.
 * Detects if session run from jenkins / terminal.
 * Auto teardown of last session.
-* "Debounces" until all VM initialised.
+* "Debounces" until all VM initialized.
 * Fixes IP address and hostnames ssh knownhosts.
+* All scripts have built in help.
+* Highly configurable logging verbosity.
 
 ## Usage ##
 
@@ -44,8 +46,7 @@ To shutdown all VM's after tests have run:
 
 	osweint_teardown \
         --cfg $OS_CFG \
-        --state  $CLUSTER_STATE \
-        --bysession
+        --session-del
 
 Or alternatively if you wish t kill all VM's started by this script:
 
@@ -54,14 +55,27 @@ Or alternatively if you wish t kill all VM's started by this script:
         --state  $CLUSTER_STATE \
         --all
 
+To list the VM's
+
+    osweint_teardown \
+        --cfg $OS_CFG \
+        --instance-list
+
+To list the sessions
+
+    osweint_teardown \
+        --cfg $OS_CFG \
+        --session-list
 
 ## ROADMAP ##
 
 These scripts are converting to an MVC pattern from a series of linear
 scripts. Currently to much data uses the state file as the model. This
-is being phased out in stages, and asmuch data as possible is being placed
+is being phased out in stages, and as much data as possible is being placed
 in the MVC model. This will remove the need for $CLUSTER_STATE and generating
-$CLUSTER_STATE will become optional.
+$CLUSTER_STATE will become optional. When this is complete the 3 separate cli
+interfaces will be merged into one cli, having all the same functionality in 
+a single cli.
 
 These scripts will eventually be taken and absorbed into whenenv, to users of
 whenenv no longer have to explictly call these scripts, and can simply markup
