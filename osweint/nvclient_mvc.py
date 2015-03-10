@@ -4,7 +4,7 @@ import json
 
 from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
 from nvclient_view_nvclient_connected import view_nvclient_connected
-from nvclient_view_nvsession import view_nvsession
+import nvclient_view_nvsession
 from nvclient_view_json import view_instance_json,  view_session_json, view_nvclient_json
 import nvclient_view_buildup
 import nvclient_view_debounce
@@ -63,27 +63,32 @@ class controler(object):
 
 
     def list(self):
-        config = view_nvsession(self.model_nvclient)
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
         config.env_apply()
         outputer = view_nvclient_json(self.model_nvclient)
         print json.dumps(outputer.list_images_default() , sort_keys=True, indent=4)
 
 
     def list_sessions(self):
-        config = view_nvsession(self.model_nvclient)
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
         config.env_apply()
         outputer = view_nvclient_json(self.model_nvclient)
         print json.dumps(outputer.list_sessions_default() , sort_keys=True, indent=4)
 
     def delete_session(self):
-        config = view_nvsession(self.model_nvclient)
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
         config.env_apply()
         deleter = view_delete(self.model_nvclient)
         deleter.connect()
         deleter.session_by_weid(self.model_nvclient.session_id)
 
     def buildup(self, steering):
-        config = view_nvsession(self.model_nvclient)
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
+        previous_sessions = config.env_previous()
+        deleter = view_delete(self.model_nvclient)
+        deleter.connect()
+        for session_2_del in previous_sessions:
+            deleter.session_by_weid(session_2_del)
         config.env_apply()
         builder = nvclient_view_buildup.view_buildup(self.model_nvclient)
 
@@ -91,7 +96,7 @@ class controler(object):
         output = builder.buildup(steering)
         return output
     def debounce(self, state):
-        config = view_nvsession(self.model_nvclient)
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
         config.env_apply()
         builder = nvclient_view_debounce.view_buildup(self.model_nvclient)
 
