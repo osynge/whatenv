@@ -7,15 +7,7 @@ import sys
 
 import subprocess
 from command_runner import Command
-
-
-try:
-    import novaclient.v3.client as nvclient
-except ImportError:
-    try:
-        import novaclient.v2.client as nvclient
-    except ImportError:
-        import novaclient.v1_1.client as nvclient
+import nvclient_view_con
 
 
 def read_input(filename):
@@ -146,16 +138,10 @@ def update_instance_data(instace):
     output['VM_DISK'] = disk_details
     return output
 
-
-class view_buildup(object):
+class view_buildup(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
+        nvclient_view_con.view_nvclient_con.__init__(self,model)
         self.log = logging.getLogger("view.buildup")
-        self.model = model
-        self._nova_con = None
-    def connect(self):
-        if self._nova_con != None:
-            return
-        self._nova_con = nvclient.Client(**self.model.nova_creds)
 
     def debounce(self, state_filename):
 
