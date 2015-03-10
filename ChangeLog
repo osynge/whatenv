@@ -1,3 +1,9 @@
+0.0.8
+
+  - Improved README.md
+  - Improved CLI help
+  - Minor improvements to Enviroment variable handling.
+
 0.0.7
 
   - Clear last session on creating a new session.
