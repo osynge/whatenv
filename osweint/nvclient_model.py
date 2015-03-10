@@ -17,7 +17,7 @@ class model_nvnetwork(object):
         self.os_name = None
         self.ipv4 = None
 
-        
+
 class model_instance(object):
     def __init__(self):
         self._md_whenenv = {}
@@ -27,7 +27,7 @@ class model_instance(object):
         self.os_name = None
         self.os_image_human_name = None
         self.sessions = set()
-        
+
 class model_nvclient(object):
     def __init__(self):
         self._instances = {}

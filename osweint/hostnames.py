@@ -69,7 +69,7 @@ def clean_ssh_hostname(intext):
             continue
         return line
     return ''
-    
+
 def clean_lsblk(intext):
     splittext = intext.split('\n')
     filtered_text = {}
@@ -90,8 +90,8 @@ def clean_lsblk(intext):
         if not 'NAME' in line_dist:
             continue
         filtered_text[line_dist['NAME']] = line_dist
-    return filtered_text 
-    
+    return filtered_text
+
 
 
 def update_instance_data(instace):
@@ -231,7 +231,7 @@ def main():
     if options.state:
         file_state = options.state
 
-    
+
     process_actions(str(file_state))
 
 

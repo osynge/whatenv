@@ -25,7 +25,7 @@ class cfg(object):
     def _validate(self):
         if self.username == None:
             raise Error("No user name specified")
-            
+
         if self.password == None:
             raise Error("No password specified")
         if self.auth_url == None:
@@ -50,7 +50,7 @@ class cfg(object):
             self.auth_url = self.cfg.getJson("main", "auth_url")
         else:
             self.log.warning("No [main] auth_url found in %s" % (filename))
-        
+
         if self.cfg.has_option("main", "tenant"):
             self.tenant_name = self.cfg.getJson("main", "tenant")
         else:

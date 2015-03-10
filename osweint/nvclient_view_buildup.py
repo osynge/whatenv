@@ -25,24 +25,24 @@ class view_buildup(object):
         if self._nova_con != None:
             return
         self._nova_con = nvclient.Client(**self.model.nova_creds)
-        
+
     def buildup(self, steering_filename):
         steering_data = read_input(steering_filename)
         output = {}
         images_data = steering_data.get("images", {})
-        if len(images_data) == 0: 
+        if len(images_data) == 0:
             return False
 
         flavor_data = steering_data.get("flavor", {})
-        if len(flavor_data) == 0: 
+        if len(flavor_data) == 0:
             return False
 
         instance_data = steering_data.get("instances", {})
-        if len(instance_data) == 0: 
+        if len(instance_data) == 0:
             return False
 
         label_data = steering_data.get("label", {})
-        
+
         if not self._nova_con.keypairs.findall(name="mykey"):
             with open(os.path.expanduser('~/.ssh/id_rsa.pub')) as fpubkey:
                 self._nova_con.keypairs.create(name="mykey", public_key=fpubkey.read())
@@ -69,7 +69,7 @@ class view_buildup(object):
 
 
         enviroment_metadata = getenviromentvars()
-        booting = set()    
+        booting = set()
         for instance_uuid in instance_data:
             metadata = {}
             label_uuid = []
@@ -105,7 +105,7 @@ class view_buildup(object):
                 foo[metakey] = json.dumps(metadata[metakey])
 
             #instance = nova.servers.create(instance_name, image, flavor, key_name="mykey",metadata =  foo)
-            boot_args = [instance_name, image, flavor] 
+            boot_args = [instance_name, image, flavor]
 
             boot_kwargs = {'files': {}, 'userdata': None, 'availability_zone': None, 'nics': [], 'block_device_mapping': {}, 'max_count': 1, 'meta': foo, 'key_name': 'mykey', 'min_count': 1, 'scheduler_hints': {}, 'reservation_id': None, 'security_groups': [], 'config_drive': None}
             try:

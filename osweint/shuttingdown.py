@@ -50,7 +50,7 @@ def process_actions(cfg,input_name):
         "JENKINS_EXECUTOR_NUMBER",
         "JENKINS_NODE_NAME",
         "JENKINS_WORKSPACE"])
-    
+
     env_var = getenviromentvars()
     terminal_use = False
     jenkins_use = False
@@ -66,7 +66,7 @@ def process_actions(cfg,input_name):
         matchset = matchset.union(env_set_termial)
     if jenkins_use:
         matchset = matchset.union(env_set_jenkins)
-    
+
     output_data = read_input(input_name)
     delete_set = set()
     for key in output_data:
@@ -79,7 +79,7 @@ def process_actions(cfg,input_name):
             env_data = env_var[intersect]
             db_data = output_data[key][intersect]
             if (env_data == db_data):
-                
+
                 continue
             print intersect, env_data
             difference = True
@@ -87,10 +87,10 @@ def process_actions(cfg,input_name):
             delete_set.add(key)
     for todel in delete_set:
         shuttdown_by_id(cfg, output_data, todel)
-            
+
 
 def main():
-    
+
     """Runs program and handles command line options"""
     p = optparse.OptionParser(version = "%prog " + version)
     p.add_option('-d', '--database', action ='store', help='Database conection string')
@@ -111,9 +111,9 @@ def main():
     actions = set()
     requires = set()
     provides = set()
-    
+
     cfg = config.cfg()
-    
+
     options, arguments = p.parse_args()
     # Set up log file
     LoggingLevel = logging.WARNING
@@ -152,11 +152,11 @@ def main():
     else:
         logging.basicConfig(level=LoggingLevel)
     log = logging.getLogger("main")
-    
+
     if options.cfg:
         cfg.read(options.cfg)
         provides.add("cfg")
-        
+
     if options.all:
         actions.add("all")
         requires.add("state")
@@ -166,7 +166,7 @@ def main():
         actions.add("bysession")
         requires.add("state")
         requires.add("cfg")
-        
+
     if options.instance_list:
         actions.add("list")
         requires.add("cfg")
@@ -182,10 +182,10 @@ def main():
     if options.state:
         input_file = options.state
         provides.add("state")
-    
+
     extra_deps = provides.difference(requires)
     missing_deps = requires.difference(provides)
-    
+
     if len(extra_deps):
         for dep in extra_deps:
             log.warning('Missing paramter:%s' %  (dep))
@@ -193,35 +193,35 @@ def main():
         for dep in missing_deps:
             log.error('Missing paramter:%s' %  (dep))
         sys.exit(1)
-    
-    
+
+
     if "all" in actions:
         sever_list_clear(cfg)
         sys.exit (0)
     if "bysession" in actions:
         process_actions(cfg, str(input_file))
-    
-    
+
+
     if "list" in actions:
-        
+
         controler = nvclient_mvc.controler()
         controler.read_config(cfg)
         controler.connect()
         controler.list()
     if "list_session" in actions:
-        
+
         controler = nvclient_mvc.controler()
         controler.read_config(cfg)
         controler.connect()
         controler.list_sessions()
-        
+
     if "session_del" in actions:
-        
+
         controler = nvclient_mvc.controler()
         controler.read_config(cfg)
         controler.connect()
         controler.delete_session()
-    
-    return 
+
+    return
 if __name__ == "__main__":
-    main() 
+    main()
