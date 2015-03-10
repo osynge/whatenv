@@ -12,7 +12,7 @@ class view_nvclient_connected(object):
         if self._nova_con != None:
             return
         self._nova_con = nvclient.Client(**self.model.nova_creds)
-        
+
     def update_instance(self, ro_server):
         metadata = {}
         for key in ro_server.metadata:
@@ -33,7 +33,7 @@ class view_nvclient_connected(object):
         self.log.debug("prcessing:%s" % (ro_server.id))
         self.log.debug("server.status:%s" % (ro_server.status))
         self.log.debug("server.metadata:%s" % (metadata))
-        
+
         session_id = metadata['WE_SESSION']
         if not session_id in self.model._sessions:
             new_session = model_nvsession()
@@ -48,7 +48,7 @@ class view_nvclient_connected(object):
         self.model._instances[instance_id].sessions.add(str(metadata['WE_SESSION']))
         self.model._instances[instance_id].os_id = str(ro_server.id)
         self.model._instances[instance_id]._md_user.update(metadata['WE_USER_LABEL'])
-        
+
         env_set_termial = set(["TERMINAL_SSH_CONNECTION",
             "TERMINAL_XAUTHLOCALHOSTNAME",
             "TERMINAL_GPG_TTY"])
@@ -68,13 +68,13 @@ class view_nvclient_connected(object):
             sessionset.add("JENKINS")
             updateset = updateset.union(jenkins_set)
         self.model._sessions[session_id].session_type = sessionset
-        
+
         for key in updateset:
             self.model._sessions[session_id]._md_whenenv[key] = metadata[key]
-        
-        
+
+
     def update(self):
         server_list = self._nova_con.servers.list()
         for server in server_list:
             self.update_instance(server)
-            
+

@@ -10,7 +10,7 @@ class Command(object):
         self.rc = None
         self.stdout = ""
         self.stderr = ""
-        
+
         def target():
             self.process = subprocess.Popen(self.cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, close_fds=True)
             self.rc = self.process.wait()

@@ -26,7 +26,7 @@ class view_nvsession(object):
         sessionset = set()
         if len(terminal_set) > 0:
             sessionset.add("TERMINAL")
-            
+
         if len(jenkins_set) > 0:
             sessionset.add("JENKINS")
         session_uuid = None
@@ -39,7 +39,7 @@ class view_nvsession(object):
             if session_terminal_set != terminal_set:
                 continue
             session_jenkins_set = jenkins_set.intersection(self.model._sessions[session]._md_whenenv)
-             
+
             if session_jenkins_set != jenkins_set:
                 continue
             thesame = True

@@ -84,6 +84,17 @@ def main():
     if len(actions) == 0:
         actions.add("legacy")
         requires.add("state")
+        
+    extra_deps = provides.difference(requires)
+    missing_deps = requires.difference(provides)
+
+    if len(extra_deps):
+        for dep in extra_deps:
+            log.warning('Missing paramter:%s' %  (dep))
+    if len(missing_deps):
+        for dep in missing_deps:
+            log.error('Missing paramter:%s' %  (dep))
+        sys.exit(1)
 
     if "legacy" in actions:
         controler = nvclient_mvc.controler()
