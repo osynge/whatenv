@@ -121,7 +121,6 @@ def read_input(filename):
 
 def process_actions(file_state):
     log = logging.getLogger("process_actions")
-    input_data = read_input(file_state)
     output_data = read_input(file_state)
     log.debug("here")
     #print output_data

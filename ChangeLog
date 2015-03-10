@@ -1,12 +1,22 @@
+0.0.4
+
+  - Added new command line options to osweint_teardown.
+    + instance-list
+      List instances as json
+    + session-list
+      List sessions as json 
+    + session-del
+      Delete current session
+
 0.0.3
 
- - Fixed bug in debounce
+  - Fixed bug in debounce
 
 0.0.2
- - Added config file option
- - Refactored the config files.
- - Added example steering file.
- - Added example config
+  - Added config file option
+  - Refactored the config files.
+  - Added example steering file.
+  - Added example config
 
 0.0.1 
- - Initial version
+  - Initial version

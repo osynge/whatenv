@@ -14,9 +14,8 @@ class model_nvsession(object):
 class model_nvnetwork(object):
     def __init__(self):
         self.uuid = None
-        self.session_type = set()
-        self.instances = set()
-        self._md_whenenv = {}
+        self.os_name = None
+        self.ipv4 = None
 
         
 class model_instance(object):
