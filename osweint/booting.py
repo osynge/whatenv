@@ -20,125 +20,6 @@ def read_input(filename):
     loadedfile = json.loads(json_string)
     return loadedfile
 
-def bootimages(cfg,input_data):
-    output = {}
-    images_data = input_data.get("images", {})
-    if len(images_data) == 0: 
-        return False
-    
-    flavor_data = input_data.get("flavor", {})
-    if len(flavor_data) == 0: 
-        return False
-    
-    instance_data = input_data.get("instances", {})
-    if len(instance_data) == 0: 
-        return False
-    
-    label_data = input_data.get("label", {})
-    creds = cfg.get_nova_creds()
-    nova = nvclient.Client(**creds)
-    if not nova.keypairs.findall(name="mykey"):
-        with open(os.path.expanduser('~/.ssh/id_rsa.pub')) as fpubkey:
-            nova.keypairs.create(name="mykey", public_key=fpubkey.read())
-
-    
-    imagedict = {}
-    for image_uuid in images_data:
-        imagename = str(images_data[image_uuid]["OS_IMAGE_NAME"])
-        image = nova.images.find(name=imagename)
-        imagedict[image_uuid] = image
-    
-    flavordict = {}
-    for flavor_uuid in flavor_data:
-        flavorname = str(flavor_data[flavor_uuid]["OS_FLAVOR_NAME"])
-        flavor = nova.flavors.find(name=flavorname)
-        flavordict[flavor_uuid] = flavor
-    
-    labeldict = dict(label_data)
-     
-    
-    ourpur = {}
-    
-    session_id = str(uuid.uuid4())
-    
-    
-    enviroment_metadata = getenviromentvars()
-    booting = set()    
-    for instance_uuid in instance_data:
-        metadata = {}
-        label_uuid = []
-        image_uuid = instance_data[instance_uuid]["uuid_image"]
-        flavor_uuid = instance_data[instance_uuid]["uuid_flavour"]
-        if len(labeldict) > 0:
-            label_uuid = instance_data[instance_uuid].get("usr_label",[])
-        image = imagedict.get(image_uuid,None)
-        if image == None:
-            continue
-        flavor = flavordict.get(flavor_uuid,None)
-        if flavor == None:
-            continue
-        labels = {}
-        for lablekey in label_uuid:
-            labels.update(labeldict[lablekey])
-        generator = str(uuid.uuid4())
-        metadata['WE_ID'] = generator
-        metadata.update(enviroment_metadata)
-        metadata["WE_TYPE_UUID"] = instance_uuid
-        
-        
-        
-        instance_name = "whenenv-%s" % (generator)
-        metadata['OS_NAME'] = instance_name
-        metadata['OS_IMAGE_ID'] = str(image.id)
-        metadata['OS_IMAGE_NAME'] = str(image.name)
-        metadata['OS_IMAGE_HUMAN_NAME'] = str(image.human_id)
-        metadata['WE_SESSION'] = session_id
-        metadata['WE_USER_LABEL'] = labels
-        foo = {}
-        for metakey in metadata:
-            foo[metakey] = json.dumps(metadata[metakey])
-
-        #instance = nova.servers.create(instance_name, image, flavor, key_name="mykey",metadata =  foo)
-        boot_args = [instance_name, image, flavor] 
-
-        boot_kwargs = {'files': {}, 'userdata': None, 'availability_zone': None, 'nics': [], 'block_device_mapping': {}, 'max_count': 1, 'meta': foo, 'key_name': 'mykey', 'min_count': 1, 'scheduler_hints': {}, 'reservation_id': None, 'security_groups': [], 'config_drive': None}
-        try:
-            instance = nova.servers.create(*boot_args, **boot_kwargs)
-        except OverLimit, E:
-            print E
-            sys.exit(1)
-        metadata['OS_ID'] = unicode(instance.id)
-        ourpur[generator] = metadata
-        booting.add(generator)
-    
-    instance_build = set(booting)
-    while len(instance_build) > 0:
-        time.sleep(5)
-        booted = set()
-        for key in booting:
-            identified = ourpur[key]['OS_ID']
-            instance = nova.servers.get(identified)
-            status = instance.status
-            if status == 'BUILD':
-                continue
-            booted.add(key)
-            ourpur[key]['OS_NETWORKS'] = instance.networks
-        instance_build.difference_update(booted)
-    return ourpur
-        
-
-def process_actions(cfg,input_name,output_name):
-    input_data = read_input(input_name)
-    booted = bootimages(cfg, input_data)
-    #print json.dumps(booted, sort_keys=True, indent=4)
-    try:
-        output_data = read_input(output_name)
-    except:
-        output_data = {}
-    output_data.update(booted)
-    f = open(output_name, 'w')
-    json.dump(output_data, f, sort_keys=True, indent=4)
-    
 def main():
     
     """Runs program and handles command line options"""
@@ -217,6 +98,10 @@ def main():
         actions.add("prototype")
         requires.add("steering")
     
+    if len(actions) == 0:
+        actions.add("legacy")
+        requires.add("steering")
+        requires.add("state")
     
     extra_deps = provides.difference(requires)
     missing_deps = requires.difference(provides)
@@ -230,7 +115,17 @@ def main():
         sys.exit(1)
     
     if "legacy" in actions:
-        process_actions(cfg,str(file_steering),file_state)
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        booted = controler.buildup(file_steering)
+        try:
+            output_data = read_input(file_state)
+        except:
+            output_data = {}
+        output_data.update(booted)
+        f = open(file_state, 'w')
+        json.dump(output_data, f, sort_keys=True, indent=4)
     
     if "prototype" in actions:
         controler = nvclient_mvc.controler()

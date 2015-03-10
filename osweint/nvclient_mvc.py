@@ -87,4 +87,5 @@ class controler(object):
         builder = nvclient_view_buildup.view_buildup(self.model_nvclient)
         
         builder.connect()
-        builder.buildup(steering)
+        output = builder.buildup(steering)
+        return output
