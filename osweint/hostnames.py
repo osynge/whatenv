@@ -69,6 +69,29 @@ def clean_ssh_hostname(intext):
             continue
         return line
     return ''
+    
+def clean_lsblk(intext):
+    splittext = intext.split('\n')
+    filtered_text = {}
+    for line in splittext:
+        if len(line) == 0:
+            continue
+        if line[:4] != "NAME":
+            continue
+        splitline = line.split('" ')
+        if len(splitline) == 0:
+            continue
+        line_dist = {}
+        for item in splitline:
+            split_item = item.split('="')
+            if len(split_item) != 2:
+                continue
+            line_dist[split_item[0]] = split_item[1]
+        if not 'NAME' in line_dist:
+            continue
+        filtered_text[line_dist['NAME']] = line_dist
+    return filtered_text 
+    
 
 
 def update_instance_data(instace):
@@ -93,24 +116,27 @@ def update_instance_data(instace):
             continue
         hostname_long.add(clean_ssh_hostname(stdout))
     hostname_short_connected = set()
+    disk_details = {}
     for hostname in hostname_short:
         subprocess.call(["ssh-keygen", "-R", hostname])
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s echo" % (hostname))
+        croc = Command("ssh -o StrictHostKeyChecking=no root@%s lsblk --pairs --output-all  --bytes" % (hostname))
         rc,stdout,stderr = croc.run(timeout=30)
         if rc != 0:
             continue
         hostname_short_connected.add(hostname)
+        disk_details.update(clean_lsblk(stdout))
     hostname_long_connected = set()
     for hostname in hostname_long:
         subprocess.call(["ssh-keygen", "-R", hostname])
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s echo" % (hostname))
+        croc = Command("ssh -o StrictHostKeyChecking=no root@%s lsblk --pairs --output-all  --bytes" % (hostname))
         rc,stdout,stderr = croc.run(timeout=30)
         if rc != 0:
             continue
         hostname_long_connected.add(hostname)
-
+        disk_details.update(clean_lsblk(stdout))
     output = dict(instace)
     output['VM_HOSTNAME'] = list(hostname_short.union(hostname_long))
+    output['VM_DISK'] = disk_details
     return output
 
 def read_input(filename):
