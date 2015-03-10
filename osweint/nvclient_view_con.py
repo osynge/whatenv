@@ -15,7 +15,7 @@ class view_nvclient_con(object):
         self.log = logging.getLogger("view.nvclient.connected")
         self.model = model
         self._nova_con = None
-    def connect_v1(self):
+    def connect_v3(self):
         d = {}
         d['auth_url'] = self.model.auth_url
         self._nova_con = nvclient.Client(self.model.username,
@@ -24,8 +24,12 @@ class view_nvclient_con(object):
             **d
             )
     def connect_v2(self):
-        self._nova_con = nvclient.Client(**self.model.nova_creds)
-
+        d = {}
+        d['username'] = self.model.username
+        d['api_key'] = self.model.password
+        d['auth_url'] = self.model.auth_url
+        d['project_id'] = self.model.project_name
+        self._nova_con = nvclient.Client(**d)
     def connect_v1(self):
         d = {}
         d['username'] = self.model.username
@@ -41,4 +45,6 @@ class view_nvclient_con(object):
             return self.connect_v3()
         if api_version == 1:
             return self.connect_v1()
+        if api_version == 2:
+            return self.connect_v2()
 
