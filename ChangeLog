@@ -1,3 +1,7 @@
+0.0.10
+
+  - Caught bug in osweint_debounce casuing it to fail.
+
 0.0.9
 
   - Made better suport for changing nova api.
