@@ -21,7 +21,7 @@ def read_input(filename):
     return loadedfile
 
 def main():
-    
+
     """Runs program and handles command line options"""
     p = optparse.OptionParser(version = "%prog " + version)
     p.add_option('-d', '--database', action ='store', help='Database conection string')
@@ -79,11 +79,11 @@ def main():
     else:
         logging.basicConfig(level=LoggingLevel)
     log = logging.getLogger("main")
-    
-    
+
+
     if options.cfg:
         cfg.read(options.cfg)
-    
+
     if options.steering:
         file_steering = options.steering
         provides.add("steering")
@@ -97,15 +97,15 @@ def main():
     if options.prototype:
         actions.add("prototype")
         requires.add("steering")
-    
+
     if len(actions) == 0:
         actions.add("legacy")
         requires.add("steering")
         requires.add("state")
-    
+
     extra_deps = provides.difference(requires)
     missing_deps = requires.difference(provides)
-    
+
     if len(extra_deps):
         for dep in extra_deps:
             log.warning('Missing paramter:%s' %  (dep))
@@ -113,7 +113,7 @@ def main():
         for dep in missing_deps:
             log.error('Missing paramter:%s' %  (dep))
         sys.exit(1)
-    
+
     if "legacy" in actions:
         controler = nvclient_mvc.controler()
         controler.read_config(cfg)
@@ -126,17 +126,17 @@ def main():
         output_data.update(booted)
         f = open(file_state, 'w')
         json.dump(output_data, f, sort_keys=True, indent=4)
-    
+
     if "prototype" in actions:
         controler = nvclient_mvc.controler()
         controler.read_config(cfg)
         controler.connect()
         controler.buildup(file_steering)
-        
-    
-    
 
 
-    return 
+
+
+
+    return
 if __name__ == "__main__":
-    main() 
+    main()

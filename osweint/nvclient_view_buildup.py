@@ -16,6 +16,47 @@ def read_input(filename):
     return loadedfile
 
 
+
+def host_operation(addresses,cmd):
+    log = logging.getLogger("host_operation")
+    connected = set()
+    retry = True
+    retry_count = 0
+    retry_max = 100
+    lastdifference = addresses
+    log.debug("check=%s" % (cmd))
+    while retry:
+        retry_count += 1
+        log.debug("retry_count=%s" % (retry_count))
+        diff_before_check = addresses.difference(connected)
+        for address in diff_before_check:
+            croc = Command(cmd % (address))
+            rc,stdout,stderr = croc.run(timeout=10)
+            if rc == 0:
+                connected.add(address)
+                continue
+            time.sleep(1)
+        diff_after_check = addresses.difference(connected)
+
+        log.debug("diff_before_check=%s" % (diff_before_check))
+        log.debug("diff_after_check=%s" % (diff_after_check))
+        if len(diff_before_check) == 0:
+            retry = False
+        if len(diff_before_check) > len(diff_after_check):
+            log.info("extending time out")
+            retry_count = 0
+        if retry_count > retry_max:
+            log.error("time out=%s" % (retry_count))
+            retry = False
+    return connected
+
+def pinghosts(addresses):
+    return host_operation(addresses,"ping -c 1 %s")
+
+
+def sshhosts(addresses):
+    return host_operation(addresses,"ssh -o StrictHostKeyChecking=no root@%s echo")
+
 class view_buildup(object):
     def __init__(self, model):
         self.log = logging.getLogger("view.instance")
@@ -25,24 +66,24 @@ class view_buildup(object):
         if self._nova_con != None:
             return
         self._nova_con = nvclient.Client(**self.model.nova_creds)
-        
+
     def buildup(self, steering_filename):
         steering_data = read_input(steering_filename)
         output = {}
         images_data = steering_data.get("images", {})
-        if len(images_data) == 0: 
+        if len(images_data) == 0:
             return False
 
         flavor_data = steering_data.get("flavor", {})
-        if len(flavor_data) == 0: 
+        if len(flavor_data) == 0:
             return False
 
         instance_data = steering_data.get("instances", {})
-        if len(instance_data) == 0: 
+        if len(instance_data) == 0:
             return False
 
         label_data = steering_data.get("label", {})
-        
+
         if not self._nova_con.keypairs.findall(name="mykey"):
             with open(os.path.expanduser('~/.ssh/id_rsa.pub')) as fpubkey:
                 self._nova_con.keypairs.create(name="mykey", public_key=fpubkey.read())
@@ -69,7 +110,7 @@ class view_buildup(object):
 
 
         enviroment_metadata = getenviromentvars()
-        booting = set()    
+        booting = set()
         for instance_uuid in instance_data:
             metadata = {}
             label_uuid = []
@@ -105,7 +146,7 @@ class view_buildup(object):
                 foo[metakey] = json.dumps(metadata[metakey])
 
             #instance = nova.servers.create(instance_name, image, flavor, key_name="mykey",metadata =  foo)
-            boot_args = [instance_name, image, flavor] 
+            boot_args = [instance_name, image, flavor]
 
             boot_kwargs = {'files': {}, 'userdata': None, 'availability_zone': None, 'nics': [], 'block_device_mapping': {}, 'max_count': 1, 'meta': foo, 'key_name': 'mykey', 'min_count': 1, 'scheduler_hints': {}, 'reservation_id': None, 'security_groups': [], 'config_drive': None}
             try:
