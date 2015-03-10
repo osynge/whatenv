@@ -24,10 +24,10 @@ def main():
     p.add_option('-q', '--quiet', action ='count',help='Change global log level, decreasing log output.', metavar='LOGFILE')
     p.add_option('-C', '--config-file', action ='store',help='Configuration file.', metavar='CFG_FILE')
     p.add_option('--steering', action ='store',help='Steering file to create VM')
-    p.add_option('--state', action ='store',help='State file')
-    p.add_option('--cfg', action ='store',help='Openstack settings')
-    p.add_option('--legacy', action ='store_true',help='Openstack settings')
-    p.add_option('--prototype', action ='store_true',help='Openstack settings')
+    p.add_option('--state', action ='store',help='State file to generate / update.')
+    p.add_option('--cfg', action ='store',help='osweint settings')
+    p.add_option('--legacy', action ='store_true',help='use the legacy code (default).')
+    p.add_option('--prototype', action ='store_true',help='use the development code.')
     file_steering = None
     file_state = None
     file_cfg = None

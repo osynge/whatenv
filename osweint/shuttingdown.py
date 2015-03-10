@@ -100,11 +100,11 @@ def main():
     p.add_option('-C', '--config-file', action ='store',help='Configuration file.', metavar='CFG_FILE')
     p.add_option('--state', action ='store',help='State file')
     p.add_option('--all', action ='store_true',help='teardown all VM')
-    p.add_option('--bysession', action ='store_true',help='tear down VM for this session')
-    p.add_option('--cfg', action ='store',help='Openstack settings')
-    p.add_option('--instance-list', action ='store_true',help='tear down VM for this session')
-    p.add_option('--session-list', action ='store_true',help='tear down VM for this session')
-    p.add_option('--session-del', action ='store_true',help='tear down VM for this session')
+    p.add_option('--bysession', action ='store_true',help='LEGACY:shutdown vms by session')
+    p.add_option('--cfg', action ='store',help='osweint settings')
+    p.add_option('--instance-list', action ='store_true',help='list instances')
+    p.add_option('--session-list', action ='store_true',help='list sessions')
+    p.add_option('--session-del', action ='store_true',help='tear all VM for this session')
     logFile = None
     input_file = None
     output_file = None
