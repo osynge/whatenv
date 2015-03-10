@@ -1,4 +1,4 @@
-import novaclient.v1_1.client as nvclient
+import novaclient.v2.client as nvclient
 import json
 from environ import getenviromentvars
 import optparse

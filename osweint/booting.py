@@ -1,12 +1,6 @@
 import os
-import time
-import novaclient.v1_1.client as nvclient
-
-from novaclient.exceptions import OverLimit
-import uuid
 import json
 import sys
-from environ import getenviromentvars
 import optparse
 import logging
 import config

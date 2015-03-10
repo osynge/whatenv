@@ -1,5 +1,5 @@
 import logging
-import novaclient.v1_1.client as nvclient
+import novaclient.v2.client as nvclient
 import json
 from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
 
