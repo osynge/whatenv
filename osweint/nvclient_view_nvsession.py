@@ -9,6 +9,7 @@ class view_nvsession(object):
         self.model = model
 
     def env_apply(self):
+        env_var = getenviromentvars()
         env_set_termial = set(["TERMINAL_SSH_CONNECTION",
             "TERMINAL_XAUTHLOCALHOSTNAME",
             "TERMINAL_GPG_TTY"])
@@ -17,8 +18,9 @@ class view_nvsession(object):
             "JENKINS_EXECUTOR_NUMBER",
             "JENKINS_NODE_NAME",
             "JENKINS_WORKSPACE"])
+        env_set_shared = set(["HOSTNAME"])
 
-        env_var = getenviromentvars()
+        shared_set = env_set_shared.intersection(env_var)
         terminal_set = env_set_termial.intersection(env_var)
         jenkins_set = env_set_jenkins.intersection(env_var)
         sessionset = set()
@@ -27,6 +29,7 @@ class view_nvsession(object):
 
         if len(jenkins_set) > 0:
             sessionset.add("JENKINS")
+        processing_env_set = shared_set.union(terminal_set.union(jenkins_set))
         session_uuid = None
         for session in self.model._sessions:
             if len(self.model._sessions[session].session_type) == 0:
@@ -56,20 +59,21 @@ class view_nvsession(object):
         new_session = model_nvsession()
         new_session.uuid = session_uuid
         new_session.session_type = sessionset
-        for key in terminal_set.union(jenkins_set):
+        for key in processing_env_set:
             new_session._md_whenenv[key] = env_var[key]
         self.model._sessions[session_uuid] = new_session
         self.model.session_id = session_uuid
 
     def env_previous(self):
         output = set()
+        env_var = getenviromentvars()
         env_set_termial = set(["TERMINAL_SSH_CONNECTION",
             "TERMINAL_XAUTHLOCALHOSTNAME",
             "TERMINAL_GPG_TTY"])
         env_set_jenkins = set(["JENKINS_EXECUTOR_NUMBER",
             "JENKINS_NODE_NAME"])
 
-        env_var = getenviromentvars()
+
         terminal_set = env_set_termial.intersection(env_var)
         jenkins_set = env_set_jenkins.intersection(env_var)
         sessionset = set()
