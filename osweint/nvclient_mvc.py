@@ -1,4 +1,3 @@
-import novaclient.v2.client as nvclient
 import logging
 import json
 
@@ -9,16 +8,13 @@ from nvclient_view_json import view_instance_json,  view_session_json, view_nvcl
 import nvclient_view_buildup
 import nvclient_view_debounce
 
+import nvclient_view_con
 
-class view_delete(object):
+
+class view_delete(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
+        nvclient_view_con.view_nvclient_con.__init__(self,model)
         self.log = logging.getLogger("view.instance")
-        self.model = model
-        self._nova_con = None
-    def connect(self):
-        if self._nova_con != None:
-            return
-        self._nova_con = nvclient.Client(**self.model.nova_creds)
 
     def instance_by_weid(self, weid):
         server_list = self._nova_con.servers.list()
@@ -39,9 +35,10 @@ class view_vmclient_config(object):
         self.model = model
 
     def cfg_apply(self,cfg):
-        self.model.nova_creds = cfg.get_nova_creds()
-        self.model.keystone_creds = cfg.get_keystone_creds()
-
+        self.model.username = cfg.username
+        self.model.password = cfg.password
+        self.model.auth_url = cfg.auth_url
+        self.model.project_name = cfg.tenant_name
 
 
 class controler(object):
@@ -81,6 +78,14 @@ class controler(object):
         deleter = view_delete(self.model_nvclient)
         deleter.connect()
         deleter.session_by_weid(self.model_nvclient.session_id)
+
+    def delete_session_all(self):
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
+        config.env_apply()
+        deleter = view_delete(self.model_nvclient)
+        deleter.connect()
+        for session in self.model_nvclient._sessions:
+            deleter.session_by_weid(session)
 
     def buildup(self, steering):
         config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)

@@ -1,5 +1,4 @@
 import logging
-import novaclient.v2.client as nvclient
 import json
 import uuid
 import time
@@ -8,6 +7,16 @@ import sys
 
 import subprocess
 from command_runner import Command
+
+
+try:
+    import novaclient.v3.client as nvclient
+except ImportError:
+    try:
+        import novaclient.v2.client as nvclient
+    except ImportError:
+        import novaclient.v1_1.client as nvclient
+
 
 def read_input(filename):
     f = open(filename)

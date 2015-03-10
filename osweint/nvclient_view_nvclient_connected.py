@@ -1,17 +1,13 @@
 import logging
-import novaclient.v2.client as nvclient
 import json
 from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
 
-class view_nvclient_connected(object):
+import nvclient_view_con
+
+class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
+        nvclient_view_con.view_nvclient_con.__init__(self,model)
         self.log = logging.getLogger("view.nvclient.connected")
-        self.model = model
-        self._nova_con = None
-    def connect(self):
-        if self._nova_con != None:
-            return
-        self._nova_con = nvclient.Client(**self.model.nova_creds)
 
     def update_instance(self, ro_server):
         metadata = {}

@@ -1,4 +1,3 @@
-import novaclient.v2.client as nvclient
 import json
 from environ import getenviromentvars
 import optparse
@@ -159,7 +158,6 @@ def main():
 
     if options.all:
         actions.add("all")
-        requires.add("state")
         requires.add("cfg")
 
     if options.bysession:
@@ -192,7 +190,7 @@ def main():
 
     if len(extra_deps):
         for dep in extra_deps:
-            log.warning('Missing paramter:%s' %  (dep))
+            log.warning('Extra paramter:%s' %  (dep))
     if len(missing_deps):
         for dep in missing_deps:
             log.error('Missing paramter:%s' %  (dep))
@@ -200,8 +198,11 @@ def main():
 
 
     if "all" in actions:
-        sever_list_clear(cfg)
-        sys.exit (0)
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.delete_session_all()
+
     if "bysession" in actions:
         process_actions(cfg, str(input_file))
 

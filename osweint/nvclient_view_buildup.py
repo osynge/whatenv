@@ -1,10 +1,11 @@
 import logging
-import novaclient.v2.client as nvclient
 import json
 import uuid
 import time
 from novaclient.exceptions import OverLimit
 import sys
+
+import nvclient_view_con
 
 #should delete this
 from environ import getenviromentvars
@@ -57,15 +58,10 @@ def pinghosts(addresses):
 def sshhosts(addresses):
     return host_operation(addresses,"ssh -o StrictHostKeyChecking=no root@%s echo")
 
-class view_buildup(object):
+class view_buildup(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
+        nvclient_view_con.view_nvclient_con.__init__(self,model)
         self.log = logging.getLogger("view.instance")
-        self.model = model
-        self._nova_con = None
-    def connect(self):
-        if self._nova_con != None:
-            return
-        self._nova_con = nvclient.Client(**self.model.nova_creds)
 
     def buildup(self, steering_filename):
         steering_data = read_input(steering_filename)
