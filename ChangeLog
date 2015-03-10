@@ -1,6 +1,11 @@
+0.0.7
+
+  - Clear last session on creating a new session.
+    + Last session detected via enviroment variables.
+
 0.0.6
 
-  - moved to new novaclient.v2 API.
+  - Moved to new novaclient.v2 API.
   - Cleaned up imports.
   - Reorganised code.
 
