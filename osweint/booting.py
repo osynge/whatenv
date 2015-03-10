@@ -11,6 +11,8 @@ import optparse
 import logging
 import config
 from __version__ import version
+import nvclient_mvc
+
 
 def read_input(filename):
     f = open(filename)
@@ -149,11 +151,14 @@ def main():
     p.add_option('--steering', action ='store',help='Steering file to create VM')
     p.add_option('--state', action ='store',help='State file')
     p.add_option('--cfg', action ='store',help='Openstack settings')
-    input_file = None
-    output_file = None
+    p.add_option('--legacy', action ='store_true',help='Openstack settings')
+    p.add_option('--prototype', action ='store_true',help='Openstack settings')
+    file_steering = None
+    file_state = None
     file_cfg = None
     actions = set()
     requires = set()
+    provides = set()
     logFile = None
     cfg = config.cfg()
     options, arguments = p.parse_args()
@@ -199,18 +204,42 @@ def main():
         cfg.read(options.cfg)
     
     if options.steering:
-        input_file = options.steering
-        
+        file_steering = options.steering
+        provides.add("steering")
     if options.state:
-        output_file = options.state
-    if input_file == None:
-        log.error("No input specified")
+        file_state = options.state
+        provides.add("state")
+    if options.legacy:
+        actions.add("legacy")
+        requires.add("steering")
+        requires.add("state")
+    if options.prototype:
+        actions.add("prototype")
+        requires.add("steering")
+    
+    
+    extra_deps = provides.difference(requires)
+    missing_deps = requires.difference(provides)
+    
+    if len(extra_deps):
+        for dep in extra_deps:
+            log.warning('Missing paramter:%s' %  (dep))
+    if len(missing_deps):
+        for dep in missing_deps:
+            log.error('Missing paramter:%s' %  (dep))
         sys.exit(1)
-    if input_file == None:
-        log.error("No output specified")
-        sys.exit(1)
-
-    process_actions(cfg,str(input_file),output_file)
+    
+    if "legacy" in actions:
+        process_actions(cfg,str(file_steering),file_state)
+    
+    if "prototype" in actions:
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.buildup(file_steering)
+        
+    
+    
 
 
     return 
