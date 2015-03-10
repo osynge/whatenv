@@ -6,7 +6,7 @@ import logging
 import sys
 from __version__ import version
 import config
-
+import nvclient_mvc
 
 
 def sever_list_clear(cfg):
@@ -102,11 +102,15 @@ def main():
     p.add_option('--all', action ='store_true',help='teardown all VM')
     p.add_option('--bysession', action ='store_true',help='tear down VM for this session')
     p.add_option('--cfg', action ='store',help='Openstack settings')
+    p.add_option('--instance-list', action ='store_true',help='tear down VM for this session')
+    p.add_option('--session-list', action ='store_true',help='tear down VM for this session')
+    p.add_option('--session-del', action ='store_true',help='tear down VM for this session')
     logFile = None
     input_file = None
     output_file = None
     actions = set()
     requires = set()
+    provides = set()
     
     cfg = config.cfg()
     
@@ -151,25 +155,72 @@ def main():
     
     if options.cfg:
         cfg.read(options.cfg)
-    
+        provides.add("cfg")
+        
     if options.all:
         actions.add("all")
+        requires.add("state")
+        requires.add("cfg")
+
     if options.bysession:
         actions.add("bysession")
         requires.add("state")
+        requires.add("cfg")
+        
+    if options.instance_list:
+        actions.add("list")
+        requires.add("cfg")
+
+    if options.session_list:
+        actions.add("list_session")
+        requires.add("cfg")
+
+    if options.session_del:
+        actions.add("session_del")
+        requires.add("cfg")
 
     if options.state:
         input_file = options.state
-        
-
-    if options.database:
-        output['pmpman.rdms'] = options.database
+        provides.add("state")
+    
+    extra_deps = provides.difference(requires)
+    missing_deps = requires.difference(provides)
+    
+    if len(extra_deps):
+        for dep in extra_deps:
+            log.warning('Missing paramter:%s' %  (dep))
+    if len(missing_deps):
+        for dep in missing_deps:
+            log.error('Missing paramter:%s' %  (dep))
+        sys.exit(1)
+    
     
     if "all" in actions:
         sever_list_clear(cfg)
         sys.exit (0)
     if "bysession" in actions:
         process_actions(cfg, str(input_file))
+    
+    
+    if "list" in actions:
+        
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.list()
+    if "list_session" in actions:
+        
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.list_sessions()
+        
+    if "session_del" in actions:
+        
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.delete_session()
     
     return 
 if __name__ == "__main__":
