@@ -41,6 +41,6 @@ def getenviromentvars():
         metadata['TERMINAL_SSH_CONNECTION'] = session_id
     session_id =  os.environ.get('HOSTNAME')
     if session_id:
-        metadata['HOSTNAME'] = session_id
+        metadata['WE_HOSTNAME'] = session_id
 
     return metadata

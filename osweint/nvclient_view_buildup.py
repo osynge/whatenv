@@ -95,7 +95,7 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
                 labels.update(labeldict[lablekey])
             for lablekey in label_uuid:
                 labels.update(labeldict[lablekey])
-            
+
             generator = str(uuid.uuid4())
             metadata['WE_ID'] = generator
             metadata.update(enviroment_metadata)
