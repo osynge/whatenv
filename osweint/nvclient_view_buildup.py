@@ -64,7 +64,12 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
         self.log = logging.getLogger("view.instance")
 
     def buildup(self, steering_filename):
-        steering_data = read_input(steering_filename)
+        try:
+            steering_data = read_input(steering_filename)
+        except ValueError, e:
+            log.error("Failed to load steering file")
+            log.error(e)
+            sys.exit(1)
         output = {}
         images_data = steering_data.get("images", {})
         if len(images_data) == 0:
