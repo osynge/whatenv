@@ -48,11 +48,11 @@ To shutdown all VM's after tests have run:
         --cfg $OS_CFG \
         --session-del
 
-Or alternatively if you wish t kill all VM's started by this script:
+Or alternatively if you wish to kill all VM's started by this script:
 
     osweint_teardown \
         --cfg $OS_CFG \
-        --state  $CLUSTER_STATE \
+        --state $CLUSTER_STATE \
         --all
 
 To list the VM's
@@ -67,6 +67,61 @@ To list the sessions
         --cfg $OS_CFG \
         --session-list
 
+## Instalation ##
+
+For suse platforms you can install easily via rpm via OBS:
+
+    https://build.opensuse.org/package/show/home:oms101:buildtools/python-openstack-whenenv-integration
+
+The application requires an ssh key pair called:
+        
+    ${HOME}/.ssh/id_rsa
+    ${HOME}/.ssh/id_rsa.pub
+
+The application will add teh file public key file to the Open Stack user as mykey.
+
+### Building from source ###
+
+you can download the source from github:
+
+    https://github.com/osynge/python-openstack-whenenv-integration
+
+or yokel.org:
+
+    http://www.yokel.org/pub/software/yokel.org/scientific/6/release/src/tgz/osweint-${VERSION}.src.tar.gz
+
+To install the python script.
+
+    $ cd $CODE_DIRECTORY
+    $ python setup.py install
+
+For further build options, including building rpms please look 
+
+## FAQ ##
+
+1. osweint_debounce fails asks for passwords and does not finish.
+
+osweint_debounce tries to use ssh to log into to each host via Ipaddress 
+and hostname. It will time out after 10 seconds attempting to contact each 
+host so thiers no need to enter passwords.
+This will occure under normal operation. 
+If the behaviour is not normal, and passwords just keep coming up, you 
+probably have a ssh-key setup issue.
+
+2. I want more logging.
+
+All these scritps have a rich logging system. Adding a '-v' paramter will
+increase the default logging level. The '-q' paramter will do the oposite.
+You can add '-q' and '-v' paramters as often as you like. For example:
+
+    osweint_teardown \
+        --cfg $OS_CFG \
+        --session-list \
+        -vvvv
+
+Will run the command with a high level of logging.
+
+
 ## ROADMAP ##
 
 These scripts are converting to an MVC pattern from a series of linear
@@ -80,6 +135,8 @@ a single cli.
 These scripts will eventually be taken and absorbed into whenenv, to users of
 whenenv no longer have to explictly call these scripts, and can simply markup
 the job files with the desired environment they wish to run upon.
+
+Better ssh key handling. so second user does not have to copy keys.
 
 ## About licensing ##
 
