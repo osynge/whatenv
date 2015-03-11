@@ -75,6 +75,7 @@ def main():
     if options.legacy:
         actions.add("legacy")
         requires.add("state")
+        requires.add("cfg")
 
     if options.prototype:
         actions.add("prototype")
@@ -84,6 +85,7 @@ def main():
     if len(actions) == 0:
         actions.add("legacy")
         requires.add("state")
+        requires.add("cfg")
 
     extra_deps = provides.difference(requires)
     missing_deps = requires.difference(provides)
