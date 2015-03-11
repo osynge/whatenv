@@ -100,7 +100,7 @@ The application requires an ssh key pair called:
 
 The application will add the file public key file to the Open Stack user as mykey.
 
-### Setup : SSUE Cloud account ##
+### Setup : SUSE Cloud account ##
 
 Create a config file with your account details wtih the name "susecloud.cfg"
 
