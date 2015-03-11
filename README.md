@@ -224,6 +224,10 @@ Will run the command with a high level of logging.
 
 ## ROADMAP ##
 
+Come up with a better name and rename the project. Current best name is 
+"whatenv" as it makes the environment you want in the cloud. Suggestions 
+great-fully accepted.
+
 These scripts are converting to an MVC pattern from a series of linear
 scripts. Currently to much data uses the state file as the model. This
 is being phased out in stages, and as much data as possible is being placed
