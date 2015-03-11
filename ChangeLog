@@ -1,35 +1,40 @@
+0.0.12
+
+  - Improved documentation.
+  - Labels can now be applied to flavors and images.
+
 0.0.11
 
-  - Caught bug in osweint_teardown casuing it to fail.
+  - Caught bug in osweint_teardown causing it to fail.
 
 0.0.10
 
-  - Caught bug in osweint_debounce casuing it to fail.
+  - Caught bug in osweint_debounce causing it to fail.
 
 0.0.9
 
-  - Made better suport for changing nova api.
+  - Made better support for changing nova api.
   
 0.0.8
 
   - Improved README.md
   - Improved CLI help
-  - Minor improvements to Enviroment variable handling.
+  - Minor improvements to Environment variable handling.
 
 0.0.7
 
   - Clear last session on creating a new session.
-    + Last session detected via enviroment variables.
+    + Last session detected via environment variables.
 
 0.0.6
 
   - Moved to new novaclient.v2 API.
   - Cleaned up imports.
-  - Reorganised code.
+  - Reorganized code.
 
 0.0.5
 
-  - Added lsblk output to the state file ypdate during debounce.
+  - Added lsblk output to the state file update during debounce.
 
 0.0.4
 
@@ -48,7 +53,7 @@
 0.0.2
 
   - Added config file option
-  - Refactored the config files.
+  - Re-factored the config files.
   - Added example steering file.
   - Added example config
 
