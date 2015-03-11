@@ -4,7 +4,7 @@ import uuid
 import time
 from novaclient.exceptions import OverLimit
 import sys
-
+import os.path
 import nvclient_view_con
 
 #should delete this
@@ -16,48 +16,6 @@ def read_input(filename):
     loadedfile = json.loads(json_string)
     return loadedfile
 
-
-
-def host_operation(addresses,cmd):
-    log = logging.getLogger("host_operation")
-    connected = set()
-    retry = True
-    retry_count = 0
-    retry_max = 100
-    lastdifference = addresses
-    log.debug("check=%s" % (cmd))
-    while retry:
-        retry_count += 1
-        log.debug("retry_count=%s" % (retry_count))
-        diff_before_check = addresses.difference(connected)
-        for address in diff_before_check:
-            croc = Command(cmd % (address))
-            rc,stdout,stderr = croc.run(timeout=10)
-            if rc == 0:
-                connected.add(address)
-                continue
-            time.sleep(1)
-        diff_after_check = addresses.difference(connected)
-
-        log.debug("diff_before_check=%s" % (diff_before_check))
-        log.debug("diff_after_check=%s" % (diff_after_check))
-        if len(diff_before_check) == 0:
-            retry = False
-        if len(diff_before_check) > len(diff_after_check):
-            log.info("extending time out")
-            retry_count = 0
-        if retry_count > retry_max:
-            log.error("time out=%s" % (retry_count))
-            retry = False
-    return connected
-
-def pinghosts(addresses):
-    return host_operation(addresses,"ping -c 1 %s")
-
-
-def sshhosts(addresses):
-    return host_operation(addresses,"ssh -o StrictHostKeyChecking=no root@%s echo")
-
 class view_buildup(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
         nvclient_view_con.view_nvclient_con.__init__(self,model)
@@ -66,8 +24,8 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
     def buildup(self, steering_filename):
         steering_data = read_input(steering_filename)
         output = {}
-        images_data = steering_data.get("images", {})
-        if len(images_data) == 0:
+        image_data = steering_data.get("images", {})
+        if len(image_data) == 0:
             return False
 
         flavor_data = steering_data.get("flavor", {})
@@ -81,13 +39,16 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
         label_data = steering_data.get("label", {})
 
         if not self._nova_con.keypairs.findall(name="mykey"):
+            if not os.path.isfile('~/.ssh/id_rsa.pub'):
+                self.log.error("Public key file: '~/.ssh/id_rsa.pub' is missing")
+                sys.exit(1)
             with open(os.path.expanduser('~/.ssh/id_rsa.pub')) as fpubkey:
                 self._nova_con.keypairs.create(name="mykey", public_key=fpubkey.read())
 
 
         imagedict = {}
-        for image_uuid in images_data:
-            imagename = str(images_data[image_uuid]["OS_IMAGE_NAME"])
+        for image_uuid in image_data:
+            imagename = str(image_data[image_uuid]["OS_IMAGE_NAME"])
             image = self._nova_con.images.find(name=imagename)
             imagedict[image_uuid] = image
 
@@ -121,8 +82,15 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             if flavor == None:
                 continue
             labels = {}
+            image_labales = image_data[image_uuid].get("usr_label",[])
+            for lablekey in image_labales:
+                labels.update(labeldict[lablekey])
+            flavor_labales = flavor_data[flavor_uuid].get("usr_label",[])
+            for lablekey in flavor_labales:
+                labels.update(labeldict[lablekey])
             for lablekey in label_uuid:
                 labels.update(labeldict[lablekey])
+            
             generator = str(uuid.uuid4())
             metadata['WE_ID'] = generator
             metadata.update(enviroment_metadata)

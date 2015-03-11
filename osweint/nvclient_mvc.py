@@ -87,6 +87,10 @@ class controler(object):
         for session in self.model_nvclient._sessions:
             deleter.session_by_weid(session)
 
+    def sessions_get_previous(self):
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
+        return config.env_previous()
+
     def buildup(self, steering):
         config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
         previous_sessions = config.env_previous()
