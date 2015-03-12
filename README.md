@@ -26,39 +26,39 @@ These scripts will evolve a little but thier current usage is shown.
 
 Boot VM's from my steering file.
 
-    osweint_buildup \
+    whatenv_buildup \
         --cfg $OS_CFG \
         --steering $STEERING_FILE \
         --state $CLUSTER_STATE
 
 Block until all VM's are booted, and fix ssh keys to log in as root.
 
-    osweint_debounce \
+    whatenv_debounce \
         --cfg $OS_CFG \
         --state $CLUSTER_STATE
 
 
 To shutdown all VM's after tests have run:
 
-	osweint_teardown \
+	whatenv_teardown \
         --cfg $OS_CFG \
         --session-del
 
 Or alternatively if you wish to kill all VM's started by this script:
 
-    osweint_teardown \
+    whatenv_teardown \
         --cfg $OS_CFG \
         --all
 
 To list the VM's
 
-    osweint_teardown \
+    whatenv_teardown \
         --cfg $OS_CFG \
         --instance-list
 
 To list the sessions
 
-    osweint_teardown \
+    whatenv_teardown \
         --cfg $OS_CFG \
         --session-list
 
@@ -198,9 +198,9 @@ images to initialise into Virtual Hosts using the special key
 
 ## FAQ ##
 
-1. osweint_debounce fails asks for passwords and does not finish.
+1. whatenv_debounce fails asks for passwords and does not finish.
 
-osweint_debounce tries to use ssh to log into to each host via Ipaddress
+whatenv_debounce tries to use ssh to log into to each host via Ipaddress
 and hostname. It will time out after 10 seconds attempting to contact each
 host so thiers no need to enter passwords.
 This will occure under normal operation.
@@ -213,7 +213,7 @@ All these scritps have a rich logging system. Adding a '-v' paramter will
 increase the default logging level. The '-q' paramter will do the oposite.
 You can add '-q' and '-v' paramters as often as you like. For example:
 
-    osweint_teardown \
+    whatenv_teardown \
         --cfg $OS_CFG \
         --session-list \
         -vvvv
