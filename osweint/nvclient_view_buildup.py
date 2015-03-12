@@ -10,6 +10,14 @@ import nvclient_view_con
 #should delete this
 from environ import getenviromentvars
 
+time_format_definition = "%Y-%m-%dT%H:%M:%SZ"
+def datetime_encoded_str():
+    obj = datetime.datetime.now()
+    return obj.strftime(time_format_definition)
+
+def datetime_str_decode():
+    return datetime.datetime(*(time.strptime(stringform, time_format_definition)[0:7]))
+
 def read_input(filename):
     f = open(filename)
     json_string = f.read()
@@ -25,8 +33,8 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
         try:
             steering_data = read_input(steering_filename)
         except ValueError, e:
-            log.error("Failed to load steering file")
-            log.error(e)
+            self.log.error("Failed to load steering file")
+            self.log.error(e)
             sys.exit(1)
         output = {}
         image_data = steering_data.get("images", {})
@@ -69,7 +77,7 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
         ourpur = {}
 
         session_id = str(uuid.uuid4())
-
+        session_created = datetime_encoded_str()
 
         enviroment_metadata = getenviromentvars()
         booting = set()
@@ -100,7 +108,7 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             metadata['WE_ID'] = generator
             metadata.update(enviroment_metadata)
             metadata["WE_TYPE_UUID"] = instance_uuid
-
+            metadata["WE_CREATED"] = instance_uuid
 
 
             instance_name = "whenenv-%s" % (generator)
