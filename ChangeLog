@@ -1,3 +1,7 @@
+0.0.14
+
+  - Renamed to whatenv
+
 0.0.13
 
   - Better error handling on loading invalid steering file.
