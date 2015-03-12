@@ -6,11 +6,11 @@ from novaclient.exceptions import OverLimit
 import sys
 import os.path
 import nvclient_view_con
-import datetime
+import date_str
 
 #should delete this
 from environ import getenviromentvars
-import date_str
+
 
 def read_input(filename):
     f = open(filename)
