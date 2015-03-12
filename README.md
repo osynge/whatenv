@@ -48,7 +48,6 @@ Or alternatively if you wish to kill all VM's started by this script:
 
     osweint_teardown \
         --cfg $OS_CFG \
-        --state $CLUSTER_STATE \
         --all
 
 To list the VM's
@@ -93,7 +92,7 @@ For further build options, including building rpms please look
 
 ### Setup : ssh keys ###
 
-The application requires an ssh key pair called:
+The application requires a password less ssh key pair called:
 
     ${HOME}/.ssh/id_rsa
     ${HOME}/.ssh/id_rsa.pub
@@ -240,7 +239,8 @@ These scripts will eventually be taken and absorbed into whenenv, to users of
 whenenv no longer have to explictly call these scripts, and can simply markup
 the job files with the desired environment they wish to run upon.
 
-Better ssh key handling. so second user does not have to copy keys.
+Better ssh key handling. So second user with the same account does not have 
+to copy keys to each account.
 
 ## About licensing ##
 
