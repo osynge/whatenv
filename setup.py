@@ -41,7 +41,6 @@ setup(name=Application,
     license='Apache Sytle License (2.0)',
     install_requires=[
        "nose >= 1.1.0",
-       "novaclient",
        "setuptools",
         ],    
     tests_require=[
