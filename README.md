@@ -192,7 +192,7 @@ images to initialise into Virtual Hosts using the special key
 
 
 
-### Setup : Sterring file : lables ###
+### Setup : Sterring file : labels ###
 
 Labels are a JSON dictionaries. These JOSN dictionaries add metadata to the state
 file. The final output is a merge of the metadata provided in the steering
@@ -264,9 +264,9 @@ contributors should feel the same.
 
 ## Similar projects ##
 
-### Beaker ###
+### Puppet Labs Beaker ###
 
-Puppet Labs cloud enabled acceptance testing tool. This poroject is the most
+Puppet Labs cloud enabled acceptance testing tool. This project is the most
 similar to whatenv but is very coupled to puppet.
 
     https://github.com/puppetlabs/beaker
@@ -280,7 +280,7 @@ openstack. Focused on orchestration and less on testing via jenkins.
 
 ### Open Stack's HEAT ###
 
-This loks very interesting but was not practical for my use case at the time
+This locks very interesting but was not practical for my use case at the time
 of writing. Focused on orchestration and less on testing via jenkins.
 
     https://wiki.openstack.org/wiki/Heat
@@ -288,7 +288,7 @@ of writing. Focused on orchestration and less on testing via jenkins.
 ### Googles's kubernetes ###
 
 This project is very interesting for the google PAS, and is very alpha
-for IAS. It loks interesting and is part of the insperation for lables
+for IAS. It looks interesting and is part of the inspiration for labels
 in the steering files. Focused on orchestration and less on testing
 via jenkins.
 
