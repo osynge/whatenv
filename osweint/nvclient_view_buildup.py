@@ -6,6 +6,7 @@ from novaclient.exceptions import OverLimit
 import sys
 import os.path
 import nvclient_view_con
+import datetime
 
 #should delete this
 from environ import getenviromentvars
