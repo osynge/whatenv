@@ -1,4 +1,5 @@
 import logging
+import date_str
 
 class view_instance_json(object):
     def __init__(self, model):
@@ -29,8 +30,9 @@ class view_session_json(object):
         for item in self.model._md_whenenv:
             output[item] = self.model._md_whenenv[item]
         if len(self.model.instances) > 0:
-
             output["INSTANCES"] = list(self.model.instances)
+        if self.model.session_created != None:
+            output["CREATED"] = date_str.datetime_encoded_str(self.model.session_created)
         return output
 
 

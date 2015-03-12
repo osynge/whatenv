@@ -3,6 +3,7 @@ import json
 from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
 
 import nvclient_view_con
+import date_str
 
 class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
@@ -18,6 +19,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             'WE_ID',
             'WE_TYPE_UUID',
             'OS_IMAGE_ID',
+            'WE_CREATED',
             ])
         missing_keys = required_keys.difference(metadata)
         if len(missing_keys) > 0:
@@ -41,6 +43,10 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             new_instance._md_whenenv['WE_ID'] = instance_id
             self.model._instances[instance_id] = new_instance
         self.model._sessions[session_id].instances.add(str(metadata['WE_ID']))
+        try:
+            self.model._sessions[session_id].session_created = date_str.datetime_str_decode(metadata['WE_CREATED'])
+        except ValueError, E:
+            self.log.error(E)
         self.model._instances[instance_id].sessions.add(str(metadata['WE_SESSION']))
         self.model._instances[instance_id].os_id = str(ro_server.id)
         self.model._instances[instance_id]._md_user.update(metadata['WE_USER_LABEL'])
