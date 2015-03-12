@@ -1,3 +1,11 @@
+0.0.13
+
+  - Better error handling on loading invalid steering file.
+  - Added a WE_CREATED date time string to images.
+  - Improved Example Steering file.
+  - Added WE_HOSTNAME to session details.
+  - Improved documentation.
+
 0.0.12
 
   - Improved documentation.
