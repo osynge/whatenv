@@ -1,3 +1,9 @@
+0.0.15
+
+  - Documentation updated for the rename.
+  - Removed some unused command line paramters.
+  - Added referances to similar projects.
+
 0.0.14
 
   - Renamed to whatenv
