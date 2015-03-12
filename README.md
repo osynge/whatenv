@@ -68,7 +68,7 @@ To list the sessions
 
 For suse platforms you can install easily via rpm via OBS:
 
-    https://build.opensuse.org/package/show/home:oms101:buildtools/
+    https://build.opensuse.org/package/show/home:oms101:buildtools/python-whatenv
 
 ### Building from source ###
 
