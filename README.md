@@ -192,8 +192,25 @@ images to initialise into Virtual Hosts using the special key
 
 
 
+### Setup : Sterring file : lables ###
 
+Labels are a JSON dictionaries. These JOSN dictionaries add metadata to the state
+file. The final output is a merge of the metadata provided in the steering
+file and an example is shown:
 
+    "WE_USER_LABEL": {
+        "CEPH_LAYOUT": [
+                "OSD",
+                "MON"
+            ],
+            "OSD_DISK": [
+                "vdb"
+            ],
+            "OS_INSTALLED": [
+                "SLE_12"
+            ]
+
+Labels can be attached to images, flavors or instances.
 
 
 ## FAQ ##
@@ -223,10 +240,6 @@ Will run the command with a high level of logging.
 
 ## ROADMAP ##
 
-Come up with a better name and rename the project. Current best name is 
-"whatenv" as it makes the environment you want in the cloud. Suggestions 
-great-fully accepted.
-
 These scripts are converting to an MVC pattern from a series of linear
 scripts. Currently to much data uses the state file as the model. This
 is being phased out in stages, and as much data as possible is being placed
@@ -239,7 +252,7 @@ These scripts will eventually be taken and absorbed into whenenv, to users of
 whenenv no longer have to explictly call these scripts, and can simply markup
 the job files with the desired environment they wish to run upon.
 
-Better ssh key handling. So second user with the same account does not have 
+Better ssh key handling. So second user with the same account does not have
 to copy keys to each account.
 
 ## About licensing ##
