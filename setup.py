@@ -12,7 +12,7 @@ except ImportError:
             from setuptools import setup, find_packages
 import os
 
-Application = 'osweint'
+Application = 'whatenv'
 
 def determine_path ():
     """Borrowed from wxglade.py"""
@@ -52,7 +52,7 @@ setup(name=Application,
     ],
 
     test_suite = 'nose.collector',
-    url = 'https://github.com/osynge/python-openstack-whenenv-integration.git',
+    url = 'https://github.com/osynge/whatenv.git',
     packages = ['osweint'],
     classifiers=[
         'Development Status :: 1 - UnStable',
@@ -61,11 +61,11 @@ setup(name=Application,
         'Operating System :: POSIX',
         'Programming Language :: Python',
         ],
-    scripts=['osweint_teardown', 'osweint_buildup', 'osweint_debounce'],
+    scripts=['whatenv_teardown', 'whatenv_buildup', 'whatenv_debounce'],
     data_files=[('/usr/share/doc/%s-%s' % (Application,version),['README.md',
             'LICENSE',
             'ChangeLog',
             'steering_example.json',
-            'osweint_example.cfg']),
+            'whatenv_example.cfg']),
         ]    
 )

@@ -78,7 +78,7 @@ you can download the source from github:
 
 or yokel.org:
 
-    http://www.yokel.org/pub/software/yokel.org/scientific/6/release/src/tgz/osweint-${VERSION}.src.tar.gz
+    http://www.yokel.org/pub/software/yokel.org/scientific/6/release/src/tgz/whenenv-${VERSION}.src.tar.gz
 
 To install the python script.
 
