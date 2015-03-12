@@ -215,7 +215,7 @@ Labels can be attached to images, flavors or instances.
 
 ## FAQ ##
 
-1. whatenv_debounce fails asks for passwords and does not finish.
+* whatenv_debounce fails asks for passwords and does not finish.
 
 whatenv_debounce tries to use ssh to log into to each host via Ipaddress
 and hostname. It will time out after 10 seconds attempting to contact each
@@ -224,7 +224,7 @@ This will occure under normal operation.
 If the behaviour is not normal, and passwords just keep coming up, you
 probably have a ssh-key setup issue.
 
-2. I want more logging.
+* I want more logging.
 
 All these scritps have a rich logging system. Adding a '-v' paramter will
 increase the default logging level. The '-q' paramter will do the oposite.
