@@ -1,5 +1,3 @@
-import json
-from environ import getenviromentvars
 import optparse
 import logging
 import sys
