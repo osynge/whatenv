@@ -18,7 +18,6 @@ def main():
 
     """Runs program and handles command line options"""
     p = optparse.OptionParser(version = "%prog " + version)
-    p.add_option('-d', '--database', action ='store', help='Database conection string')
     p.add_option('-L', '--logcfg', action ='store',help='Logfile configuration file.', metavar='CFG_LOGFILE')
     p.add_option('-v', '--verbose', action ='count',help='Change global log level, increasing log output.', metavar='LOGFILE')
     p.add_option('-q', '--quiet', action ='count',help='Change global log level, decreasing log output.', metavar='LOGFILE')
