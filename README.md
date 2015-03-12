@@ -266,29 +266,30 @@ contributors should feel the same.
 
 ### Beaker ###
 
-Puppet Labs cloud enabled acceptance testing tool.
+Puppet Labs cloud enabled acceptance testing tool. This poroject is the most
+similar to whatenv but is very coupled to puppet.
 
     https://github.com/puppetlabs/beaker
 
 ### Docker's Compose ###
 
-Compose is very similar for docker containers to whatenv for SUSEcloud / 
+Compose is very similar for docker containers to whatenv for SUSEcloud /
 openstack. Focused on orchestration and less on testing via jenkins.
 
     http://blog.docker.com/2015/02/orchestrating-docker-with-machine-swarm-and-compose/
 
 ### Open Stack's HEAT ###
 
-This loks very interesting but was not practical for my use case at the time 
+This loks very interesting but was not practical for my use case at the time
 of writing. Focused on orchestration and less on testing via jenkins.
 
     https://wiki.openstack.org/wiki/Heat
 
 ### Googles's kubernetes ###
 
-This project is very interesting for the google PAS, and is very alpha 
-for IAS. It loks interesting and is part of the insperation for lables 
-in the steering files. Focused on orchestration and less on testing 
+This project is very interesting for the google PAS, and is very alpha
+for IAS. It loks interesting and is part of the insperation for lables
+in the steering files. Focused on orchestration and less on testing
 via jenkins.
 
     https://github.com/googlecloudplatform/kubernetes
