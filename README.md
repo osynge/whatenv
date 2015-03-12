@@ -1,4 +1,4 @@
-# python-openstack-whenenv-integration #
+# whatenv #
 
 These scripts are designed to buildup and tear down clusters of virtual
 machines for the purposes of functional testing of cluster software such
@@ -68,13 +68,13 @@ To list the sessions
 
 For suse platforms you can install easily via rpm via OBS:
 
-    https://build.opensuse.org/package/show/home:oms101:buildtools/python-openstack-whenenv-integration
+    https://build.opensuse.org/package/show/home:oms101:buildtools/
 
 ### Building from source ###
 
 you can download the source from github:
 
-    https://github.com/osynge/python-openstack-whenenv-integration
+    https://github.com/osynge/whatenv
 
 or yokel.org:
 
@@ -248,3 +248,11 @@ I hope that these scripts get absorbed by other projects, and only remain for
 historical reference. i will happily change/relicense to suit integration,
 in any open source projects that cannot work with the current license. I expect
 contributors should feel the same.
+
+## Similar projects ##
+
+### Beaker ###
+
+Puppet Labs cloud enabled acceptance testing tool.
+
+    https://github.com/puppetlabs/beaker
