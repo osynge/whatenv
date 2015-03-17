@@ -111,7 +111,7 @@ Create a config file with your account details wtih the name "susecloud.cfg"
 
 The auth_url can be set to the 1.1, 2, or 3 api for the cloud.
 
-### Setup : Sterring file. ###
+### Setup : Steering file. ###
 
 Example Steering file.
 
@@ -293,3 +293,10 @@ in the steering files. Focused on orchestration and less on testing
 via jenkins.
 
     https://github.com/googlecloudplatform/kubernetes
+
+### Quattor AII ###
+
+Similar to whatenv but uses Opennebula RPC instructions to create VM's and 
+is integrated with Quattor to deploy the VM's software.
+
+    https://github.com/quattor/aii/tree/master/aii-opennebula
