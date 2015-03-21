@@ -113,6 +113,10 @@ The auth_url can be set to the 1.1, 2, or 3 api for the cloud.
 
 ### Setup : Steering file. ###
 
+The steering file is the most important configuration file for whatenv.
+This defines what virtual maschien instances will be creatred and destroyed
+as part of a session.
+
 Example Steering file.
 
     {
@@ -179,16 +183,69 @@ Example Steering file.
         }
     }
 
+### Setup : Steering file : Introduction ###
 
-### Setup : Sterring file : images ###
+The steering file is a json dictionary, with 4 keys.
 
-Images are a JSON dict. The key is an identifier and string of your
-choice and only must be unique within the steering file(s) used in a
-session. The value is a dictionary also.
+* label
+* images
+* flavor
+* instances
 
-The image instances value is used to query SUSE cloud / Open Stack for
-images to initialise into Virtual Hosts using the special key
-"OS_IMAGE_NAME". "usr_label" lists can also be added.
+Each of these 4 keys have a value of a dictionary. These dictionaries have 
+identifiers. These identifiers can have any value and have no significance
+outside this file and are just surogate keys to accociate the 4 types of
+metadata presented by whatenv to the open stack cloud. In the above example 
+these identyifiers are uuid's but they coudl equally well be more descriptive
+such as label_01, image_04, flavor_32, instance_controler.
+
+
+### Setup : Steering file : images ###
+
+The open Stack instance you are accessing will have a series of VM images
+available in the image store so you can run the apropriate Operating system
+and version of that operating system. Whatenv must be able to select the 
+apropriate image to creat VM instance for your use.
+
+Within the images dictionary we have a set of images, each identified by a 
+unique identifier. This will be used by instances to specify which image is 
+used to create the instance.
+
+Each image is also a JSON dictionary. The value is a dictionary and the value 
+must contain an "OS_IMAGE_NAME" key. as show above. This is used to select 
+the apropriate image, and must match an image name provided by SUSE cloud / 
+Open Stack.
+
+Images like flavours and instances can referance a set of labels. These are
+given the key "usr_label" and presented as a JSON list. Labales are optional,
+but recomended to allow easy use of your cluster.
+
+
+### Setup : Steering file : flavor ###
+
+The open Stack instance you are accessing will have a series of VM flavors
+available, these define the disks, memorry, and number of virtual CPU's.
+
+Whatenv must be able to select the apropriate flavor to create VM instances
+for your use.
+
+
+Within the images dictionary we have a set of images, each identified by a 
+unique identifier. This will be used by instances to specify which image is 
+used to create the instance.
+
+Each image is also a JSON dictionary. The value is a dictionary and the value 
+must contain an "OS_FLAVOR_NAME" key. as show above. This is used to select 
+the apropriate flavor, and must match an image name provided by SUSE cloud / 
+Open Stack.
+
+Flavor like images and instances can referance a set of labels. These are
+given the key "usr_label" and presented as a JSON list. Labales are optional,
+but recomended to allow easy use of your cluster.
+
+
+### Setup : Steering file : instances ###
+
 
 
 
