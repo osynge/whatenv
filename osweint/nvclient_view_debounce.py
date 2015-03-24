@@ -134,7 +134,8 @@ def update_instance_data(instace):
         hostname_long_connected.add(hostname)
         disk_details.update(clean_lsblk(stdout))
     output = dict(instace)
-    output['VM_HOSTNAME'] = list(hostname_short.union(hostname_long))
+    output['VM_HOSTNAME_SHORT'] = list(hostname_short)
+    output['VM_HOSTNAME_LONG'] = list(hostname_long)
     output['VM_DISK'] = disk_details
     return output
 
