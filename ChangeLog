@@ -1,3 +1,8 @@
+0.0.16
+
+  - Removed VM_HOSTNAME from state file.
+  - Added VM_HOSTNAME_SHORT and VM_HOSTNAME_LONG to state file.
+
 0.0.15
 
   - Documentation updated for the rename.
