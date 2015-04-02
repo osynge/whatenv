@@ -101,7 +101,7 @@ The application will add the file public key file to the Open Stack user as myke
 
 ### Setup : SUSE Cloud account ##
 
-Create a config file with your account details wtih the name "susecloud.cfg"
+Create a config file with your account details with the name "susecloud.cfg"
 
     [main]
     username="my user name"
@@ -114,7 +114,7 @@ The auth_url can be set to the 1.1, 2, or 3 api for the cloud.
 ### Setup : Steering file. ###
 
 The steering file is the most important configuration file for whatenv.
-This defines what virtual maschien instances will be creatred and destroyed
+This defines what virtual machine instances will be created and destroyed
 as part of a session.
 
 Example Steering file.
@@ -192,64 +192,85 @@ The steering file is a json dictionary, with 4 keys.
 * flavor
 * instances
 
-Each of these 4 keys have a value of a dictionary. These dictionaries have 
+Each of these 4 keys have a value of a dictionary. These dictionaries have
 identifiers. These identifiers can have any value and have no significance
-outside this file and are just surogate keys to accociate the 4 types of
-metadata presented by whatenv to the open stack cloud. In the above example 
-these identyifiers are uuid's but they coudl equally well be more descriptive
-such as label_01, image_04, flavor_32, instance_controler.
+outside this file and are just surrogate keys to associated the 4 types of
+metadata presented by whatenv to the open stack cloud. In the above example
+these identifiers are uuid's but they could equally well be more descriptive
+such as label_01, image_04, flavor_32, instance_controller.
+
+
+### Setup : Steering file : instances ###
+
+Your test cluster is a made up of a collection of instances, these instances
+are the VM hosts you want to be created and destroyed on each testing cycle.
+
+Each VM may be different from other VM's or similar. These VM's will all need
+to be destroyed at the end of each testing cycle as well as created in each
+testing cycle.
+
+Within the instances dictionary we have a set of instance dictionaries, each
+identified by a unique identifier. This will be used to uniquely identify
+which VM instance in the output state file. One instance corresponds to one VM
+that will be instantiated.
+
+Each instance needs to have a "uuid_image" to defied its operating system
+image and one "uuid_flavour" to define it's hardware layout. Please see the
+next sections to explain this in more detail.
+
+Although instances can be be identified via the identifier, this causes
+infelxabilities in interpreting the "state" file and combining and modifying
+your test clusters. For this reason each instance can have a set of labels.
+Please see the label section to explain this in more detail.
 
 
 ### Setup : Steering file : images ###
 
 The open Stack instance you are accessing will have a series of VM images
-available in the image store so you can run the apropriate Operating system
-and version of that operating system. Whatenv must be able to select the 
-apropriate image to creat VM instance for your use.
+available in the image store so you can run the appropriate Operating system
+and version of that operating system. Whatenv must be able to select the
+appropriate image to create VM instance for your use.
 
-Within the images dictionary we have a set of images, each identified by a 
-unique identifier. This will be used by instances to specify which image is 
+Within the images dictionary we have a set of images, each identified by a
+unique identifier. This will be used by instances to specify which image is
 used to create the instance.
 
-Each image is also a JSON dictionary. The value is a dictionary and the value 
-must contain an "OS_IMAGE_NAME" key. as show above. This is used to select 
-the apropriate image, and must match an image name provided by SUSE cloud / 
+Each image is also a JSON dictionary. The value is a dictionary and the value
+must contain an "OS_IMAGE_NAME" key. as show above. This is used to select
+the appropriate image, and must match an image name provided by SUSE cloud /
 Open Stack.
 
-Images like flavours and instances can referance a set of labels. These are
-given the key "usr_label" and presented as a JSON list. Labales are optional,
-but recomended to allow easy use of your cluster.
+Images like flavors and instances can reference a set of labels. These are
+given the key "usr_label" and presented as a JSON list. labels are optional,
+but recommended to allow easy use of your cluster.
 
 
 ### Setup : Steering file : flavor ###
 
 The open Stack instance you are accessing will have a series of VM flavors
-available, these define the disks, memorry, and number of virtual CPU's.
+available, these define the disks, memory, and number of virtual CPU's.
 
-Whatenv must be able to select the apropriate flavor to create VM instances
+Whatenv must be able to select the appropriate flavor to create VM instances
 for your use.
 
 
-Within the images dictionary we have a set of images, each identified by a 
-unique identifier. This will be used by instances to specify which image is 
+Within the images dictionary we have a set of images, each identified by a
+unique identifier. This will be used by instances to specify which image is
 used to create the instance.
 
-Each image is also a JSON dictionary. The value is a dictionary and the value 
-must contain an "OS_FLAVOR_NAME" key. as show above. This is used to select 
-the apropriate flavor, and must match an image name provided by SUSE cloud / 
+Each image is also a JSON dictionary. The value is a dictionary and the value
+must contain an "OS_FLAVOR_NAME" key. as show above. This is used to select
+the appropriate flavor, and must match an image name provided by SUSE cloud /
 Open Stack.
 
-Flavor like images and instances can referance a set of labels. These are
-given the key "usr_label" and presented as a JSON list. Labales are optional,
-but recomended to allow easy use of your cluster.
-
-
-### Setup : Steering file : instances ###
+Flavor like images and instances can reference a set of labels. These are
+given the key "usr_label" and presented as a JSON list. labels are optional,
+but recommended to allow easy use of your cluster.
 
 
 
 
-### Setup : Sterring file : labels ###
+### Setup : Steering file : labels ###
 
 Labels are a JSON dictionaries. These JOSN dictionaries add metadata to the state
 file. The final output is a merge of the metadata provided in the steering
@@ -274,18 +295,18 @@ Labels can be attached to images, flavors or instances.
 
 * whatenv_debounce fails asks for passwords and does not finish.
 
-whatenv_debounce tries to use ssh to log into to each host via Ipaddress
+whatenv_debounce tries to use ssh to log into to each host via Ip address
 and hostname. It will time out after 10 seconds attempting to contact each
-host so thiers no need to enter passwords.
-This will occure under normal operation.
-If the behaviour is not normal, and passwords just keep coming up, you
+host so theirs no need to enter passwords.
+This will occur under normal operation.
+If the behavior is not normal, and passwords just keep coming up, you
 probably have a ssh-key setup issue.
 
 * I want more logging.
 
-All these scritps have a rich logging system. Adding a '-v' paramter will
-increase the default logging level. The '-q' paramter will do the oposite.
-You can add '-q' and '-v' paramters as often as you like. For example:
+All these scripts have a rich logging system. Adding a '-v' parameter will
+increase the default logging level. The '-q' parameter will do the opposite.
+You can add '-q' and '-v' parameters as often as you like. For example:
 
     whatenv_teardown \
         --cfg $OS_CFG \
@@ -353,7 +374,7 @@ via jenkins.
 
 ### Quattor AII ###
 
-Similar to whatenv but uses Opennebula RPC instructions to create VM's and 
+Similar to whatenv but uses Open nebula RPC instructions to create VM's and
 is integrated with Quattor to deploy the VM's software.
 
     https://github.com/quattor/aii/tree/master/aii-opennebula
