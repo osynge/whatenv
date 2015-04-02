@@ -290,6 +290,18 @@ file and an example is shown:
 
 Labels can be attached to images, flavors or instances.
 
+Since instances are composed of images and flavours in open stack, and
+instances, images and flavours can all have labels, when an instance is
+created by whatenv all the labales are added toether.
+
+### Setup : Steering file : labels : Presidence ###
+
+Should labels clash the one label must overide the previous label.
+Labels are added in the order of presidence:
+
+1. Instance
+2. Image
+3. Flavor
 
 ## FAQ ##
 
