@@ -1,3 +1,9 @@
+0.0.17
+
+  - Improved documentation.
+  - Dont throw an exception if config file does not exist.
+  - Dont throw an exception if steering file does nto exist.
+
 0.0.16
 
   - Removed VM_HOSTNAME from state file.
