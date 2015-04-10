@@ -1,7 +1,7 @@
 import ConfigParserJson
 import os
 import logging
-
+import os.path
 
 class Error(Exception):
     """
@@ -34,6 +34,8 @@ class cfg(object):
             raise Error("No tenant_name specified")
 
     def read(self,filename):
+        if not os.path.isfile(filename):
+            raise Error("Config file '%s' does not exist" % filename)
         self.cfg = ConfigParserJson.jsonConfigParser()
         self.cfg.read(filename)
         if not self.cfg.has_section("main"):
@@ -56,6 +58,8 @@ class cfg(object):
         else:
             self.log.warning("No [main] tenant found in %s" % (filename))
         self._validate()
+        return True
+
     def get_keystone_creds(self):
         self._validate()
         d = {}

@@ -7,7 +7,6 @@ import config
 from __version__ import version
 import nvclient_mvc
 
-
 def read_input(filename):
     f = open(filename)
     json_string = f.read()
@@ -24,7 +23,7 @@ def main():
     p.add_option('-C', '--config-file', action ='store',help='Configuration file.', metavar='CFG_FILE')
     p.add_option('--steering', action ='store',help='Steering file to create VM')
     p.add_option('--state', action ='store',help='State file to generate / update.')
-    p.add_option('--cfg', action ='store',help='osweint settings')
+    p.add_option('--cfg', action ='store',help='whatenv settings')
     p.add_option('--legacy', action ='store_true',help='use the legacy code (default).')
     p.add_option('--prototype', action ='store_true',help='use the development code.')
     file_steering = None
@@ -75,7 +74,7 @@ def main():
 
 
     if options.cfg:
-        cfg.read(options.cfg)
+        file_cfg = options.cfg
 
     if options.steering:
         file_steering = options.steering
@@ -95,6 +94,14 @@ def main():
         actions.add("legacy")
         requires.add("steering")
         requires.add("state")
+
+    if file_cfg != None:
+        try:
+            cfg.read(file_cfg)
+        except config.Error, E:
+            log.error(E)
+            sys.exit(1)
+
 
     extra_deps = provides.difference(requires)
     missing_deps = requires.difference(provides)
