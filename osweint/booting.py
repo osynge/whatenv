@@ -119,7 +119,11 @@ def main():
         controler = nvclient_mvc.controler()
         controler.read_config(cfg)
         controler.connect()
-        booted = controler.buildup(file_steering)
+        try:
+            booted = controler.buildup(file_steering)
+        except nvclient_mvc.Error, E:
+            log.error(E)
+            sys.exit(1)
         try:
             output_data = read_input(file_state)
         except:
@@ -132,7 +136,11 @@ def main():
         controler = nvclient_mvc.controler()
         controler.read_config(cfg)
         controler.connect()
-        controler.buildup(file_steering)
+        try:
+            controler.buildup(file_steering)
+        except nvclient_mvc.Error, E:
+            log.error(E)
+            sys.exit(1)
 
 
 

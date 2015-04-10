@@ -10,6 +10,14 @@ import nvclient_view_debounce
 
 import nvclient_view_con
 
+class Error(Exception):
+    """
+    Error
+    """
+
+    def __str__(self):
+        doc = self.__doc__.strip()
+        return ': '.join([doc] + [str(a) for a in self.args])
 
 class view_delete(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
@@ -102,7 +110,11 @@ class controler(object):
         builder = nvclient_view_buildup.view_buildup(self.model_nvclient)
 
         builder.connect()
-        output = builder.buildup(steering)
+        try:
+            output = builder.buildup(steering)
+        except nvclient_view_buildup.Error, E:
+            error_text = ''.join([str(a) for a in E.args])
+            raise Error(error_text)
         return output
     def debounce(self, state):
         config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)

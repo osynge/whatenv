@@ -11,6 +11,14 @@ import date_str
 #should delete this
 from environ import getenviromentvars
 
+class Error(Exception):
+    """
+    Error
+    """
+
+    def __str__(self):
+        doc = self.__doc__.strip()
+        return ': '.join([doc] + [str(a) for a in self.args])
 
 def read_input(filename):
     f = open(filename)
@@ -24,6 +32,8 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
         self.log = logging.getLogger("view.instance")
 
     def buildup(self, steering_filename):
+        if not os.path.isfile(steering_filename):
+            raise Error("Steering file '%s' does not exist" % steering_filename)
         try:
             steering_data = read_input(steering_filename)
         except ValueError, e:
