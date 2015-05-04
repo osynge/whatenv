@@ -1,5 +1,6 @@
 import logging
 import date_str
+from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
 
 class view_instance_json(object):
     def __init__(self, model):
@@ -18,6 +19,21 @@ class view_instance_json(object):
         output["OS_ID"] = self.model.os_id
         output["OS_IMAGE_HUMAN_NAME"] = self.model.os_image_human_name
         return output
+    def load_images_default(self,decoded_obj):
+        for item in decoded_obj:
+            
+            if item == "WE_USER_LABEL":
+                self.model._md_user = decoded_obj[item]
+                continue
+            if item == "OS_ID":
+                self.model.os_id = decoded_obj[item]
+                continue
+            if item == "OS_IMAGE_HUMAN_NAME":
+                self.model.os_image_human_name = decoded_obj[item]
+                continue
+            if item == "WE_SESSION":
+                continue
+            self.model._md_whenenv[item] = decoded_obj[item]
 
 
 class view_session_json(object):
@@ -60,3 +76,11 @@ class view_nvclient_json(object):
             output[item] = as_dict
         return output
 
+    def load_sessions_default(self,decoded_obj):
+        for key in decoded_obj:
+            if not key in self.model._instances.keys():
+                new_instance = model_instance()
+                self.model._instances[key] = model_instance()
+            instance_view = view_instance_json(self.model._instances[key])
+            instance_view.load_images_default(decoded_obj[key])
+            

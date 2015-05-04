@@ -22,9 +22,12 @@ def main():
     p.add_option('--instance-list', action ='store_true',help='list instances')
     p.add_option('--session-list', action ='store_true',help='list sessions')
     p.add_option('--session-del', action ='store_true',help='tear all VM for this session')
+    p.add_option('--filter-state', action ='store',help='Extract information from json')
+    
     logFile = None
     input_file = None
     output_file = None
+    label_filter = None
     actions = set()
     requires = set()
     provides = set()
@@ -98,6 +101,11 @@ def main():
         input_file = options.state
         provides.add("state")
 
+    if options.filter_state:
+        label_filter = options.filter_state
+        actions.add("filter_state")
+        requires.add("state")
+
     if len(actions) == 0:
         log.error('No task selected')
         sys.exit(1)
@@ -139,7 +147,29 @@ def main():
         controler.read_config(cfg)
         controler.connect()
         controler.delete_session()
+        
+    if len(missing_deps):
+        for dep in missing_deps:
+            log.error('Missing paramter:%s' %  (dep))
+        sys.exit(1)
 
+
+    if "all" in actions:
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.delete_session_all()
+
+    if "list" in actions:
+
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+    if "filter_state" in actions:
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.state_load(input_file)
+        controler.filter_instances(label_filter)
     return
 if __name__ == "__main__":
     main()

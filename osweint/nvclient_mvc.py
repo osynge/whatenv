@@ -9,6 +9,7 @@ import nvclient_view_buildup
 import nvclient_view_debounce
 
 import nvclient_view_con
+import types
 
 class Error(Exception):
     """
@@ -18,6 +19,35 @@ class Error(Exception):
     def __str__(self):
         doc = self.__doc__.strip()
         return ': '.join([doc] + [str(a) for a in self.args])
+
+
+def filter_metadata(metadata, filter_obj):
+    for key in filter_obj:
+        if not key in metadata:
+            return False
+        value_type = type(filter_obj[key])
+        if value_type is types.IntType:
+            if metadata[key] != filter_obj[key]:
+                return False
+        if value_type is types.UnicodeType:
+            if metadata[key] != filter_obj[key]:
+                return False
+        if value_type is types.ListType:
+            for list_index in range(0,len(filter_obj[key])):
+                list_item = filter_obj[key][list_index]
+                list_item_type = type(list_item)
+                if list_item_type is types.IntType:
+                    if not list_item in metadata[key]:
+                        return False
+                if list_item_type is types.UnicodeType:
+                    if not list_item in metadata[key]:
+                        return False
+
+        if type(metadata[key]) != type(filter_obj[key]):
+            return False
+
+    return True
+
 
 class view_delete(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
@@ -124,3 +154,22 @@ class controler(object):
         builder.connect()
         output = builder.debounce(state)
         return output
+    def state_load(self,state):
+        fp = open(state)
+        json_loaded = json.load(fp)
+        fp.close()
+        loader = view_nvclient_json(self.model_nvclient)
+        loader.load_sessions_default(json_loaded)
+    def filter_instances(self,label_filter):
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
+        previous_sessions = config.env_previous()
+        print previous_sessions
+        matching = []
+        json_loaded = json.loads(label_filter)
+        output = set()
+        for key in  self.model_nvclient._instances.keys():
+            labels = self.model_nvclient._instances[key]._md_user
+            if filter_metadata(labels,json_loaded):
+                output.add(key)
+        for item in output:
+            print item

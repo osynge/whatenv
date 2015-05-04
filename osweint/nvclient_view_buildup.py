@@ -129,7 +129,21 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             #instance = nova.servers.create(instance_name, image, flavor, key_name="mykey",metadata =  foo)
             boot_args = [instance_name, image, flavor]
 
-            boot_kwargs = {'files': {}, 'userdata': None, 'availability_zone': None, 'nics': [], 'block_device_mapping': {}, 'max_count': 1, 'meta': foo, 'key_name': 'mykey', 'min_count': 1, 'scheduler_hints': {}, 'reservation_id': None, 'security_groups': [], 'config_drive': None}
+            boot_kwargs = {'files': {}, 
+                'userdata': None, 
+                'availability_zone': None, 
+                'nics': [], 
+                'block_device_mapping': {}, 
+                'max_count': 1, 
+                'meta': foo, 
+                'key_name': 
+                'mykey', 
+                'min_count': 1, 
+                'scheduler_hints': {}, 
+                'reservation_id': None, 
+                'security_groups': [], 
+                'config_drive': None
+            }
             try:
                 instance = self._nova_con.servers.create(*boot_args, **boot_kwargs)
             except OverLimit, E:

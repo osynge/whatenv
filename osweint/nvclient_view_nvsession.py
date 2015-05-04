@@ -106,3 +106,4 @@ class view_nvsession(object):
                 continue
             output.add(session)
         return output
+    
