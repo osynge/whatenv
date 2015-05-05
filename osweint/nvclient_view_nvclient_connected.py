@@ -1,15 +1,77 @@
 import logging
 import json
-from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
+from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient, model_flavor,model_images
 
 import nvclient_view_con
 import date_str
+import nvclient_view_nvsession
+import uuid
+
+from environ import getenviromentvars
+from novaclient.exceptions import OverLimit
+
 
 class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
         nvclient_view_con.view_nvclient_con.__init__(self,model)
         self.log = logging.getLogger("view.nvclient.connected")
 
+
+    def update_flavor(self, ro_server):
+        #self.log.error("update_flavor")
+        #self.log.error(dir(ro_server))
+        #self.log.error(ro_server.id)
+        
+        known = set(self.model._flavors.keys())
+        candidates = set()
+        for item in known:
+            if self.model._flavors[item].os_id != ro_server.id:
+                continue
+            candidates.add(item)
+        if len(candidates) == 0:
+            new_flavor_uuid = str(uuid.uuid4())
+            new_flavor = model_flavor()
+            new_flavor.uuid = new_flavor_uuid
+            new_flavor.os_id = ro_server.id
+            new_flavor.os_name = ro_server.name
+            self.model._flavors[new_flavor_uuid] = new_flavor
+            candidates.add(new_flavor_uuid)
+        candidate_names_flavor_name = set()
+        
+        
+        
+    def update_images(self, ro_server):
+        #self.log.error("update_flavor")
+        #self.log.error(dir(ro_server))
+        #self.log.error(ro_server.id)
+        
+        known = set(self.model._images.keys())
+        candidates = set()
+        for item in known:
+            if self.model._images[item].os_id != ro_server.id:
+                continue
+            candidates.add(item)
+        if len(candidates) == 0:
+            new_flavor_uuid = str(uuid.uuid4())
+            new_flavor = model_images()
+            new_flavor.uuid = new_flavor_uuid
+            new_flavor.os_id = ro_server.id
+            new_flavor.os_name = ro_server.name
+            self.model._images[new_flavor_uuid] = new_flavor
+            candidates.add(new_flavor_uuid)
+        candidate_names_flavor_name = set()
+        
+        for item in candidates:
+            if self.model._images[item].os_name != ro_server.name:
+                continue
+            self.model._images[item].os_name = ro_server.name
+        
+              
+            
+            
+            
+            
+        
     def update_instance(self, ro_server):
         metadata = {}
         for key in ro_server.metadata:
@@ -28,9 +90,9 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         default_keys = defaultable_keys.difference(metadata)
         for key in default_keys:
             metadata[key] = {}
-        self.log.debug("prcessing:%s" % (ro_server.id))
-        self.log.debug("server.status:%s" % (ro_server.status))
-        self.log.debug("server.metadata:%s" % (metadata))
+        #self.log.debug("prcessing:%s" % (ro_server.id))
+        #self.log.debug("server.status:%s" % (ro_server.status))
+        #self.log.debug("server.metadata:%s" % (metadata))
 
         session_id = metadata['WE_SESSION']
         if not session_id in self.model._sessions:
@@ -73,10 +135,247 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
 
         for key in updateset:
             self.model._sessions[session_id]._md_whenenv[key] = metadata[key]
-
+        
 
     def update(self):
+        flavor_list = self._nova_con.flavors.list()
+        for flavor in flavor_list:
+            self.update_flavor(flavor)
+        images_list = self._nova_con.images.list()
+        for images in images_list:
+            self.update_images(images)
+        
         server_list = self._nova_con.servers.list()
         for server in server_list:
             self.update_instance(server)
+        
+        
 
+    def list_sessions_ids(self):
+        #self.log.debug("starting list_sessions_ids")
+        
+        return set(self.model._sessions)
+    
+    def get_session_current(self):
+        if self.model.session_id == None:
+            config = nvclient_view_nvsession.view_nvsession(self.model)
+            config.env_apply()
+        #self.log.error("get_session_current:id:%s" % (self.model.session_id))
+        return str(self.model.session_id)
+
+    def list_instance_id(self,session_name):
+        output = set()
+        if not session_name in self.model._sessions.keys():
+            return output
+        return set(self.model._sessions[session_name].instances)
+        
+    def delete_instance_id(self, weid_list):
+        os_id_list = set()
+        we_id_mapping = {}
+        for weid in weid_list:
+            if not weid in self.model._instances.keys():
+                self.log.error("did not find sessionid:%s" % (weid))
+                continue
+            we_id_mapping[weid] = self.model._instances[weid].os_id
+            os_id_list.add(self.model._instances[weid].os_id)
+        self.log.debug("os_id_list:%s" % (os_id_list))
+        server_list = self._nova_con.servers.list()
+        for server in server_list:
+                #print "prcessing:%s" % (server.id)
+            self.log.debug("server.id:%s" % (server.id))
+            if server.id in os_id_list:
+                self.log.debug("deleting:%s" % (server.name))
+                server.delete()
+        
+        for weid in we_id_mapping.keys():
+            self.log.debug("weid:%s" % (weid))
+            self.log.debug("server.status:%s" % (server.status))
+            session = self.model._instances[weid].sessions
+            self.log.debug("self.model._instances[weid].sessions:%s" % (session))
+            self.log.debug("instances:%s" % (self.model._sessions[session].instances))
+                        
+            self.model._sessions[session].instances.remove(weid)
+            self.log.debug("instances:%s" % (self.model._sessions[session].instances))
+            
+            del(self.model._instances[weid])
+            
+    
+    def create_session(self,session_id):
+        self._nova_con.images.list()
+        
+        if not self._nova_con.keypairs.findall(name="mykey"):
+            if not os.path.isfile('~/.ssh/id_rsa.pub'):
+                self.log.error("Public key file: '~/.ssh/id_rsa.pub' is missing")
+                sys.exit(1)
+            with open(os.path.expanduser('~/.ssh/id_rsa.pub')) as fpubkey:
+                self._nova_con.keypairs.create(name="mykey", public_key=fpubkey.read())
+
+        
+        #imagedict = {}
+        #for image_uuid in image_data:
+        #    imagename = str(image_data[image_uuid]["OS_IMAGE_NAME"])
+        #    image = self._nova_con.images.find(name=imagename)
+        #    imagedict[image_uuid] = image
+
+        flavordict = {}
+        #for flavor_uuid in flavor_data:
+        #    flavorname = str(flavor_data[flavor_uuid]["OS_FLAVOR_NAME"])
+        #    flavor = self._nova_con.flavors.find(name=flavorname)
+        #    flavordict[flavor_uuid] = flavor
+
+        ourpur = {}
+        session_created = date_str.datetime_encoded_str()
+
+        
+        
+        new_session = model_nvsession()
+        new_session.uuid = session_id
+        new_session._md_whenenv = getenviromentvars()
+        new_session.session_created = session_created
+        self.model._sessions[session_id] = new_session
+    
+        self.model.session_id = session_id
+        return session_id
+        
+    def create_instance(self,instance_id,session_id):
+        if not session_id in self.model._sessions.keys():
+            self.log.error("No session found")
+            return None
+        
+        if not instance_id in self.model._instances:
+            new_instance = model_instance()
+            new_instance._md_whenenv['WE_ID'] = instance_id
+            new_instance.sessions = session_id
+            self.model._instances[instance_id] = new_instance
+            
+        
+        self.model._sessions[session_id].instances.add(str(instance_id))
+        return instance_id
+    
+    def gen_metadata(self,instance_id):
+        
+        metadata = {}
+        if not instance_id in self.model._instances.keys():
+            return metadata
+        
+        for key in self.model._sessions[self.model.session_id]._md_whenenv.keys():
+            metadata[key] = self.model._sessions[self.model.session_id]._md_whenenv[key]
+        for key in self.model._instances[instance_id]._md_whenenv.keys():
+            metadata[key] = self.model._instances[instance_id]._md_whenenv[key]
+        
+        metadata['OS_IMAGE_ID'] = self.model._instances[instance_id].os_imageid
+        if self.model._instances[instance_id].os_id != None:
+            metadata['OS_ID'] = self.model._instances[instance_id].os_id
+        if self.model._instances[instance_id].os_name != None:
+            metadata['OS_NAME'] = self.model._instances[instance_id].os_name
+        if self.model._instances[instance_id].os_image_human_name != None:
+            metadata['OS_IMAGE_HUMAN_NAME'] = self.model._instances[instance_id].os_image_human_name
+        if self.model._instances[instance_id].os_id != None:
+            metadata['OS_IMAGE_ID'] = self.model._instances[instance_id].os_id
+        if self.model._instances[instance_id].os_id != None:
+            metadata['WE_TYPE_UUID'] = self.model._instances[instance_id].os_id
+        
+        
+        
+        metadata['WE_SESSION'] = self.model._instances[instance_id].sessions
+        
+        foo = {}
+        for metakey in metadata:
+            foo[metakey] = json.dumps(metadata[metakey])
+
+        return metadata
+    
+    
+    def add_metadata(self,instance_id,metadata):
+        inmetadata = set(metadata.keys())
+        current_session = set(self.model._sessions[self.model.session_id]._md_whenenv.keys())
+        current_instance = set(self.model._instances[instance_id]._md_whenenv.keys())
+        current_keys = current_session.union(current_instance)
+        newkeys = inmetadata.difference(current_keys)
+        for key in newkeys:
+            self.model._instances[instance_id]._md_whenenv[key] = metadata[key]
+        
+        
+    def boot_instance(self,instance_id,images_id,flavor_id):
+        if self.model.session_id == None:
+            return
+        if len(self.model.session_id) == 0:
+            return
+        
+        
+
+        
+        metadata = self.gen_metadata(instance_id)
+        
+        needed_keys =  ['WE_ID',
+            "WE_TYPE_UUID",
+            "WE_CREATED",
+            'OS_NAME',
+            'OS_IMAGE_ID',
+            'OS_IMAGE_NAME',
+            'OS_IMAGE_HUMAN_NAME',
+            'WE_SESSION',
+            'OS_FLAVOR_ID',
+            
+            ]
+        required_keys = set(needed_keys)
+        metadata_keys = set(metadata.keys())
+        
+        
+        missing_required = required_keys.difference(metadata_keys)
+        # now default soem values
+        if "WE_CREATED" in missing_required:
+            metadata["WE_CREATED"] = date_str.datetime_encoded_str()
+        
+        metadata_keys = set(metadata.keys())
+        missing_required = required_keys.difference(metadata_keys)
+        if len(missing_required) > 0:
+            self.log.error("Cannnot launch %s: missing %s" % (instance_id, ",".join(missing_required)))
+            return
+        
+        #self.log.error("rdiff=%s" %(required_keys.difference(metadata_keys)))
+        #self.log.error("diff=%s" %(metadata_keys.difference(required_keys)))
+
+        foo = {}
+        for metakey in metadata:
+            foo[metakey] = json.dumps(metadata[metakey])
+        
+        instance_name = "whenenv-%s" % (instance_id)
+        #instance = nova.servers.create(instance_name, image, flavor, key_name="mykey",metadata =  foo)
+        os_image_id = metadata["OS_IMAGE_ID"]
+        os_flavor_id = metadata["OS_FLAVOR_ID"]
+        
+        boot_args = [instance_name, self.model._images[images_id].os_id, self.model._flavors[flavor_id].os_id]
+
+        boot_kwargs = {'files': {}, 
+            'userdata': None, 
+            'availability_zone': None, 
+            'nics': [], 
+            'block_device_mapping': {}, 
+            'max_count': 1, 
+            'meta': foo, 
+            'key_name': 
+            'mykey', 
+            'min_count': 1, 
+            'scheduler_hints': {}, 
+            'reservation_id': None, 
+            'security_groups': [], 
+            'config_drive': None
+        }
+        try:
+            instance = self._nova_con.servers.create(*boot_args, **boot_kwargs)
+        except OverLimit, E:
+            print E
+            sys.exit(1)
+        self.model._instances[instance_id].os_id = unicode(instance.id)
+        return instance_id
+
+    def list_flavor_id(self):
+        return set(self.model._flavors.keys())
+    
+    def list_flavor_os_id(self,skey):
+        return set(self.model._flavors[skey].os_id)
+    
+    def list_images_id(self):
+        return set(self.model._images.keys())
+   

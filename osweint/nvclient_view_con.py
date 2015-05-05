@@ -12,7 +12,7 @@ except ImportError:
 
 class view_nvclient_con(object):
     def __init__(self, model):
-        self.log = logging.getLogger("view.nvclient.connected")
+        self.log = logging.getLogger("view.nvclient.con")
         self.model = model
         self._nova_con = None
     def connect_v3(self):

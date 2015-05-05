@@ -18,6 +18,26 @@ class model_nvnetwork(object):
         self.ipv4 = None
 
 
+class model_flavor(object):
+    def __init__(self):
+        self.uuid = None
+        self.os_name = None
+        self.os_id = None
+
+
+class model_flavor(object):
+    def __init__(self):
+        self.uuid = None
+        self.os_name = None
+        self.os_id = None
+
+class model_images(object):
+    def __init__(self):
+        self.uuid = None
+        self.os_name = None
+        self.os_id = None
+
+
 class model_instance(object):
     def __init__(self):
         self._md_whenenv = {}
@@ -28,11 +48,18 @@ class model_instance(object):
         self.os_image_human_name = None
         self.sessions = set()
 
+
+
 class model_nvclient(object):
     def __init__(self):
         self._instances = {}
         self._sessions = {}
+        self._flavors = {}
+        self._images = {}
+        
         self.nova_creds = {}
         self.keystone_creds = {}
         self.session_id = set()
+
+
 

@@ -10,7 +10,7 @@ import nvclient_view_debounce
 
 import nvclient_view_con
 import types
-
+from nvclient_view_config import view_vmclient_config
 class Error(Exception):
     """
     Error
@@ -63,20 +63,13 @@ class view_delete(nvclient_view_con.view_nvclient_con):
                 server.delete()
                 self.log.debug("server.status:%s" % (server.status))
 
-    def session_by_weid(self, weid):
-        for instance in self.model._sessions[weid].instances:
+    def session_by_id(self, session_id):
+        if not session_id in  self.model._sessions.keys():
+            self.log.error("No session %s" %session_id )
+        
+        for instance in self.model._sessions[session_id].instances:
             self.instance_by_weid(instance)
 
-
-class view_vmclient_config(object):
-    def __init__(self, model):
-        self.model = model
-
-    def cfg_apply(self,cfg):
-        self.model.username = cfg.username
-        self.model.password = cfg.password
-        self.model.auth_url = cfg.auth_url
-        self.model.project_name = cfg.tenant_name
 
 
 class controler(object):
@@ -88,6 +81,8 @@ class controler(object):
         self.connection = view_nvclient_connected(self.model_nvclient)
         self.connection.connect()
         self.connection.update()
+        for ases in self.model_nvclient._sessions:
+            print "xxx", self.model_nvclient._sessions[ases].instances
 
     def read_config(self,cfg):
         config = view_vmclient_config(self.model_nvclient)
@@ -95,8 +90,11 @@ class controler(object):
         #config.env_apply()
 
 
-
-
+    def get_current_session(self):
+        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
+        config.env_apply()
+        print self.model_nvclient.session_id
+        return self.model_nvclient.session_id
     def list(self):
         config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
         config.env_apply()
@@ -110,12 +108,18 @@ class controler(object):
         outputer = view_nvclient_json(self.model_nvclient)
         print json.dumps(outputer.list_sessions_default() , sort_keys=True, indent=4)
 
-    def delete_session(self):
+    def delete_session(self,sessionID):
+        print self.model_nvclient
         config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
         config.env_apply()
+        
+        
         deleter = view_delete(self.model_nvclient)
+        print self.model_nvclient
         deleter.connect()
-        deleter.session_by_weid(self.model_nvclient.session_id)
+        instances = self.connection.list_instance_id(sessionID)
+        for instance in instances:
+            self.connection.list_instance_id(sessionID)
 
     def delete_session_all(self):
         config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)

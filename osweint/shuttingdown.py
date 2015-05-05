@@ -23,11 +23,13 @@ def main():
     p.add_option('--session-list', action ='store_true',help='list sessions')
     p.add_option('--session-del', action ='store_true',help='tear all VM for this session')
     p.add_option('--filter-state', action ='store',help='Extract information from json')
+    p.add_option('--session', action ='store',help='Extract information from json')
     
     logFile = None
     input_file = None
     output_file = None
     label_filter = None
+    session = None
     actions = set()
     requires = set()
     provides = set()
@@ -101,6 +103,10 @@ def main():
         input_file = options.state
         provides.add("state")
 
+    if options.session:
+        input_file = options.session
+        provides.add("session")
+
     if options.filter_state:
         label_filter = options.filter_state
         actions.add("filter_state")
@@ -146,7 +152,9 @@ def main():
         controler = nvclient_mvc.controler()
         controler.read_config(cfg)
         controler.connect()
-        controler.delete_session()
+        if session == None:
+            session = controler.get_current_session()
+        controler.delete_session(session)
         
     if len(missing_deps):
         for dep in missing_deps:
