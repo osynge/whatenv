@@ -157,9 +157,13 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         return set(self.model._sessions)
     
     def get_session_current(self):
+        self.log.error("get_session_current")
         if self.model.session_id == None:
             config = nvclient_view_nvsession.view_nvsession(self.model)
-            config.env_apply()
+            match_sessions = config.get_mattching_sessions()
+            if len(match_sessions) == 1:
+                self.model.session_id = match_sessions.pop()
+            self.log.error("match_sessions:id:%s" % (self.model.session_id))
         #self.log.error("get_session_current:id:%s" % (self.model.session_id))
         return str(self.model.session_id)
 
@@ -223,6 +227,24 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         #    flavor = self._nova_con.flavors.find(name=flavorname)
         #    flavordict[flavor_uuid] = flavor
 
+        env_var = getenviromentvars()
+        env_set_termial = set(["TERMINAL_SSH_CONNECTION",
+            "TERMINAL_XAUTHLOCALHOSTNAME",
+            "TERMINAL_GPG_TTY"])
+        env_set_jenkins = set(["JENKINS_EXECUTOR_NUMBER",
+            "JENKINS_NODE_NAME"])
+
+
+        terminal_set = env_set_termial.intersection(env_var)
+        jenkins_set = env_set_jenkins.intersection(env_var)
+        sessionset = set()
+        if len(terminal_set) > 0:
+            sessionset.add("TERMINAL")
+
+        if len(jenkins_set) > 0:
+            sessionset.add("JENKINS")
+
+
         ourpur = {}
         session_created = date_str.datetime_encoded_str()
 
@@ -232,9 +254,9 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         new_session.uuid = session_id
         new_session._md_whenenv = getenviromentvars()
         new_session.session_created = session_created
+        new_session.session_type = sessionset
         self.model._sessions[session_id] = new_session
     
-        self.model.session_id = session_id
         return session_id
         
     def create_instance(self,instance_id,session_id):
@@ -258,8 +280,10 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         if not instance_id in self.model._instances.keys():
             return metadata
         
-        for key in self.model._sessions[self.model.session_id]._md_whenenv.keys():
-            metadata[key] = self.model._sessions[self.model.session_id]._md_whenenv[key]
+        
+        session_id = self.model._instances[instance_id].sessions
+        for key in self.model._sessions[session_id]._md_whenenv.keys():
+            metadata[key] = self.model._sessions[session_id]._md_whenenv[key]
         for key in self.model._instances[instance_id]._md_whenenv.keys():
             metadata[key] = self.model._instances[instance_id]._md_whenenv[key]
         
@@ -288,7 +312,8 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
     
     def add_metadata(self,instance_id,metadata):
         inmetadata = set(metadata.keys())
-        current_session = set(self.model._sessions[self.model.session_id]._md_whenenv.keys())
+        session_id = self.model._instances[instance_id].sessions
+        current_session = set(self.model._sessions[session_id]._md_whenenv.keys())
         current_instance = set(self.model._instances[instance_id]._md_whenenv.keys())
         current_keys = current_session.union(current_instance)
         newkeys = inmetadata.difference(current_keys)
@@ -297,10 +322,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         
         
     def boot_instance(self,instance_id,images_id,flavor_id):
-        if self.model.session_id == None:
-            return
-        if len(self.model.session_id) == 0:
-            return
+        
         
         
 
@@ -365,8 +387,8 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         try:
             instance = self._nova_con.servers.create(*boot_args, **boot_kwargs)
         except OverLimit, E:
-            print E
-            sys.exit(1)
+            self.log.error("overlimit:" %(E))
+            return None
         self.model._instances[instance_id].os_id = unicode(instance.id)
         return instance_id
 

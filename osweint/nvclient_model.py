@@ -59,7 +59,7 @@ class model_nvclient(object):
         
         self.nova_creds = {}
         self.keystone_creds = {}
-        self.session_id = set()
+        self.session_id = None
 
 
 

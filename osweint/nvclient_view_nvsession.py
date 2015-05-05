@@ -33,7 +33,7 @@ class view_nvsession(object):
         session_uuid = None
         for session in self.model._sessions:
             if len(self.model._sessions[session].session_type) == 0:
-                log.error('TODO:account for this state')
+                self.log.error('TODO:account for this state')
             if self.model._sessions[session].session_type != sessionset:
                 continue
             session_terminal_set = env_set_termial.intersection(self.model._sessions[session]._md_whenenv)
@@ -65,6 +65,10 @@ class view_nvsession(object):
         self.model.session_id = session_uuid
 
     def env_previous(self):
+        self.log.error("Depricated method env_previous")
+        return self.get_mattching_keys()
+        
+    def get_mattching_sessions(self):
         output = set()
         env_var = getenviromentvars()
         env_set_termial = set(["TERMINAL_SSH_CONNECTION",
@@ -86,7 +90,8 @@ class view_nvsession(object):
 
         for session in self.model._sessions:
             if len(self.model._sessions[session].session_type) == 0:
-                log.error('TODO:account for this state')
+                self.log.error('TODO:account for this state')
+                assert(False)
             if self.model._sessions[session].session_type != sessionset:
                 continue
             session_terminal_set = env_set_termial.intersection(self.model._sessions[session]._md_whenenv)
