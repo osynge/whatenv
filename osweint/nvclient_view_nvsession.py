@@ -18,8 +18,8 @@ class view_nvsession(object):
             "JENKINS_EXECUTOR_NUMBER",
             "JENKINS_NODE_NAME",
             "JENKINS_WORKSPACE"])
-        env_set_shared = set(["WE_HOSTNAME"])
-
+        env_set_shared = set(["WE_HOSTNAME",
+            "WE_USERNAME"])
         shared_set = env_set_shared.intersection(env_var)
         terminal_set = env_set_termial.intersection(env_var)
         jenkins_set = env_set_jenkins.intersection(env_var)

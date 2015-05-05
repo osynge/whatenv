@@ -30,9 +30,9 @@ def getenviromentvars():
     session_id =  os.environ.get('XAUTHLOCALHOSTNAME')
     if session_id:
         metadata['TERMINAL_XAUTHLOCALHOSTNAME'] = session_id
-    session_id =  os.environ.get('OS_USERNAME')
+    session_id =  os.environ.get('USER')
     if session_id:
-        metadata['TERMINAL_OS_USERNAME'] = session_id
+        metadata['WE_USERNAME'] = session_id
     session_id =  os.environ.get('GPG_TTY')
     if session_id:
         metadata['TERMINAL_GPG_TTY'] = session_id
