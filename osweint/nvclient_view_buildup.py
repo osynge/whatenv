@@ -10,7 +10,7 @@ import date_str
 
 #should delete this
 from environ import getenviromentvars
-
+from osweint.nvclient_view_nvclient_connected import view_nvclient_connected as view_nvclient_connected
 class Error(Exception):
     """
     Error
@@ -29,7 +29,137 @@ def read_input(filename):
 class view_buildup(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
         nvclient_view_con.view_nvclient_con.__init__(self,model)
-        self.log = logging.getLogger("view.instance")
+        self.log = logging.getLogger("view.buildup")
+
+    def enstantiate(self, steering_filename,builder):
+        if not os.path.isfile(steering_filename):
+            raise Error("Steering file '%s' does not exist" % steering_filename)
+        try:
+            steering_data = read_input(steering_filename)
+        except ValueError, e:
+            self.log.error("Failed to load steering file")
+            self.log.error(e)
+            raise Error("Steering file '%s' loading error:%s" % (steering_filename,e))
+        output = {}
+        image_data = steering_data.get("images", {})
+        if len(image_data) == 0:
+            return False
+
+        flavor_data = steering_data.get("flavor", {})
+        if len(flavor_data) == 0:
+            return False
+
+        instance_data = steering_data.get("instances", {})
+        if len(instance_data) == 0:
+            return False
+
+        label_data = steering_data.get("label", {})
+
+        # we have intial data
+
+
+        session_id = builder.get_session_current()
+        if session_id == None:
+            session_id = builder.create_session(str(uuid.uuid4()))
+            builder.update()
+        if session_id == None:
+            self.log.error("session_id=%s" % (session_id))
+            return False
+        self.log.error("session_id=%s" % (session_id))
+        known_images = set(self.model._images.keys())
+        known_flavors = set(self.model._flavors.keys())
+
+
+        imagedict = {}
+        for image_uuid in image_data:
+            imagename = str(image_data[image_uuid]["OS_IMAGE_NAME"])
+            matching_names = set()
+            for image_id in known_images:
+                if self.model._images[image_id].os_name == imagename:
+                    matching_names.add(image_id)
+            imagedict[image_uuid] = matching_names
+
+        flavordict = {}
+        for flavor_uuid in flavor_data:
+            flavorname = str(flavor_data[flavor_uuid]["OS_FLAVOR_NAME"])
+            matching_flavor = set()
+            for flavor_id in known_flavors:
+                if self.model._flavors[flavor_id].os_name == flavorname:
+                    matching_flavor.add(flavor_id)
+            flavordict[flavor_uuid] = matching_flavor
+
+        labeldict = dict(label_data)
+
+
+        ourpur = {}
+
+        session_created = date_str.datetime_encoded_str()
+
+        enviroment_metadata = getenviromentvars()
+        booting = set()
+        for instance_uuid in instance_data:
+            instance_id = builder.create_instance(str(uuid.uuid4()),session_id)
+            if instance_id == None:
+                self.log.error("failed to create instance=%s" % (instance_uuid))
+                continue
+
+
+
+            metadata = {}
+            label_uuid = []
+            image_uuid = instance_data[instance_uuid]["uuid_image"]
+            self.log.error("image_uuid=%s" % (image_uuid))
+            flavor_uuid = instance_data[instance_uuid]["uuid_flavour"]
+            if len(labeldict) > 0:
+                label_uuid = instance_data[instance_uuid].get("usr_label",[])
+            image = set(imagedict.get(image_uuid,set()))
+            if len(image) != 1:
+                self.log.error("not found image_uuid=%s" % (image))
+                continue
+            flavor = set(flavordict.get(flavor_uuid,set()))
+            if len(flavor) != 1:
+                self.log.error("not found flavor_uuid=%s" % (flavor))
+                continue
+            self.log.error("image=%s" % (image))
+
+
+            image_id = image.pop()
+            flavor_id = flavor.pop()
+            self.model._instances[instance_id].flavors = flavor
+
+
+            self.log.error("flavor=%s" % (flavor))
+
+            instance_data[instance_uuid]
+            labels = {}
+            image_labales = image_data[image_uuid].get("usr_label",[])
+            for lablekey in image_labales:
+                labels.update(labeldict[lablekey])
+            flavor_labales = flavor_data[flavor_uuid].get("usr_label",[])
+            for lablekey in flavor_labales:
+                labels.update(labeldict[lablekey])
+            for lablekey in label_uuid:
+                labels.update(labeldict[lablekey])
+
+            generator = str(uuid.uuid4())
+            metadata['WE_ID'] = generator
+            metadata.update(enviroment_metadata)
+            metadata["WE_TYPE_UUID"] = instance_uuid
+            metadata["WE_CREATED"] = session_created
+
+
+            self.log.error("image_id=%s" % (image_id))
+            instance_name = "whatenv-%s" % (generator)
+            metadata['WE_SESSION'] = session_id
+            metadata['WE_USER_LABEL'] = labels
+            metadata['OS_IMAGE_NAME'] = self.model._images[image_id].os_name
+            metadata['OS_NAME'] = instance_name
+            metadata['OS_IMAGE_HUMAN_NAME'] = instance_name
+            metadata['OS_FLAVOR_ID'] = self.model._flavors[flavor_id].os_id
+            builder.add_metadata(instance_id,metadata)
+            builder.boot_instance(instance_id,image_id,flavor_id)
+
+
 
     def buildup(self, steering_filename):
         if not os.path.isfile(steering_filename):
@@ -129,19 +259,19 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             #instance = nova.servers.create(instance_name, image, flavor, key_name="mykey",metadata =  foo)
             boot_args = [instance_name, image, flavor]
 
-            boot_kwargs = {'files': {}, 
-                'userdata': None, 
-                'availability_zone': None, 
-                'nics': [], 
-                'block_device_mapping': {}, 
-                'max_count': 1, 
-                'meta': foo, 
-                'key_name': 
-                'mykey', 
-                'min_count': 1, 
-                'scheduler_hints': {}, 
-                'reservation_id': None, 
-                'security_groups': [], 
+            boot_kwargs = {'files': {},
+                'userdata': None,
+                'availability_zone': None,
+                'nics': [],
+                'block_device_mapping': {},
+                'max_count': 1,
+                'meta': foo,
+                'key_name':
+                'mykey',
+                'min_count': 1,
+                'scheduler_hints': {},
+                'reservation_id': None,
+                'security_groups': [],
                 'config_drive': None
             }
             try:
