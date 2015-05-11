@@ -27,12 +27,12 @@ class TestLaunch(unittest.TestCase):
         
     def tearDown(self):
         log = logging.getLogger("TestLaunch.tearDown")
-        session = self.connection.get_session_current()
-        assert (session != None)
-        log.error("session = %s" % (session))
-        instances = self.connection.list_instance_id(session)
+        session_id = self.connection.get_session_current()
+        if session_id == None:
+            return
+        instances = self.connection.list_instance_id(session_id)
         log.error("instances = %s" % (instances))
-        #self.connection.delete_instance_id(instances)
+        metadata = self.connection.delete_instance_id(instances)
 
 
     def test_can_boot_data_min(self):

@@ -24,23 +24,22 @@ class TestLaunch(unittest.TestCase):
         self.connection = view_nvclient_connected(self.mclient)
         self.connection.connect()
         self.connection.update()
-        skey_session = self.connection.get_session_current()
-        assert (skey_session != None)
+        self.session_list = []
+        
         
     def tearDown(self):
         log = logging.getLogger("TestLaunch.tearDown")
-        session = self.connection.get_session_current()
-        assert (session != None)
-        log.error("session = %s" % (session))
-        instances = self.connection.list_instance_id(session)
-        log.error("instances = %s" % (instances))
-        #self.connection.delete_instance_id(instances)
+        for session in self.session_list:
+            instances = self.connection.list_instance_id(session)
+            log.error("instances = %s" % (instances))
+            self.connection.delete_instance_id(instances)
 
 
     def test_connect_current_session_can_boot(self):
         log = logging.getLogger("test_connect_current_session_can_boot")
         self.connection.update()
         session_id = self.connection.create_session(str(uuid.uuid4()))
+        self.session_list.append(session_id)
         self.connection.update()
         instance_id = self.connection.create_instance(str(uuid.uuid4()),session_id)
         assert (instance_id != None)

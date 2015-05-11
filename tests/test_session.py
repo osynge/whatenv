@@ -47,7 +47,6 @@ class TestSession(unittest.TestCase):
         frog = self.connection.list_sessions_ids()
         
         assert (frog != None)
-        assert (len(frog) != 0)
         for skey_session in frog:
             instance_list = self.connection.list_instance_id(skey_session)
             assert (instance_list != None)

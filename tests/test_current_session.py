@@ -14,7 +14,7 @@ from osweint.nvclient_view_config import view_vmclient_config
 import osweint.config
 
 
-class TestTwoSession(unittest.TestCase):
+class TestCurrentSession(unittest.TestCase):
     def setUp(self):
         self.mclient = model_nvclient()
         config = view_vmclient_config(self.mclient)
@@ -24,37 +24,42 @@ class TestTwoSession(unittest.TestCase):
         self.connection = view_nvclient_connected(self.mclient)
         self.connection.connect()
         self.connection.update()
-        self.session1 = str(uuid.uuid4())
-        self.session2 = str(uuid.uuid4())
         
     def tearDown(self):
         log = logging.getLogger("TestLaunch.tearDown")
-        session = self.connection.get_session_current()
-        assert (session != None)
-        log.error("session = %s" % (session))
-        instances = self.connection.list_instance_id(session)
+        session_id = self.connection.get_session_current()
+        if session_id == None:
+            return
+        instances = self.connection.list_instance_id(session_id)
         log.error("instances = %s" % (instances))
-        #self.connection.delete_instance_id(instances)
-
-
-    def test_can_find_session(self):
-        log = logging.getLogger("main")
-        initallength = len(self.mclient._sessions)
-        log.error("initallength = %s" % (initallength))
-        session = self.connection.get_session_current()
-        log.error("session = %s" % (session))
+        metadata = self.connection.delete_instance_id(instances)
         
-        session_id = self.connection.create_session(self.session1)
-        session = self.connection.get_session_current()
-        log.error("session = %s" % (session))
-        initallength = len(self.mclient._sessions)
-        
+    def test_can_find(self):
+        log = logging.getLogger("TestCurrentSession.tearDown")
+        session_id = self.connection.get_session_current()
+        if session_id == None:
+            session_id = self.connection.create_session(str(uuid.uuid4()))
+        assert (session_id != None)
+        session_id = self.connection.get_session_current()
+        assert (session_id != None)
+        log.debug("session_id=%s" % (session_id))
+    
+    def test_can_delete(self):
+        log = logging.getLogger("TestCurrentSession.test_can_delete")
+        session_id = self.connection.get_session_current()
+        log.error(session_id)
+        instances = self.connection.list_instance_id(session_id)
+        log.error("instances = %s" % (instances))
+        for instance_id in instances:
+            metadata = self.connection.gen_metadata(instance_id)
+            log.error("instances = %s" % (metadata))
         
 if __name__ == "__main__":
     logging.basicConfig()
     LoggingLevel = logging.WARNING
     logging.basicConfig(level=LoggingLevel)
     log = logging.getLogger("main")
+    
     import nose
 
 

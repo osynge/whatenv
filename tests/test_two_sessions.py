@@ -4,7 +4,7 @@ sys.path = [os.path.abspath(os.path.dirname(os.path.dirname(__file__)))] + sys.p
 import logging
 import unittest
 import uuid
-
+import time
 
     
 from osweint.nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
@@ -30,16 +30,24 @@ class TestTwoSession(unittest.TestCase):
         assert (session_id == self.session1)
         session_id = self.connection.create_session(self.session2)
         assert (session_id == self.session2)
-        
+        self.clear_session()
         
     def tearDown(self):
-        log = logging.getLogger("TestLaunch.tearDown")
-        session = self.connection.get_session_current()
-        assert (session != None)
-        log.error("session = %s" % (session))
-        instances = self.connection.list_instance_id(session)
-        log.error("instances = %s" % (instances))
-        #self.connection.delete_instance_id(instances)
+        time.sleep(30)
+        self.clear_session()
+        
+    def clear_session(self):
+        log = logging.getLogger("TestTwoSession.clear_session")
+        instances1 = set()
+        self.connection.update()
+        session_id = self.connection.get_session_current()
+        if session_id != None:
+            instances1 = self.connection.list_instance_id(session_id)
+        instances2 = self.connection.list_instance_id(self.session1)
+        instances3 = self.connection.list_instance_id(self.session2)
+        instances_all = instances1.union(instances2).union(instances3)
+        log.error("instances = %s" % (instances_all))
+        metadata = self.connection.delete_instance_id(instances_all)
 
 
     def test_connect_current_session_can_boot_session1(self):
