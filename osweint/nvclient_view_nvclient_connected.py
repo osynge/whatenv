@@ -8,9 +8,9 @@ import nvclient_view_nvsession
 import uuid
 
 from environ import getenviromentvars
-from novaclient.exceptions import OverLimit
+from novaclient.exceptions import OverLimit,from_response
 import date_str
-
+import time
 
 class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
@@ -75,6 +75,10 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
 
     def update_instance(self, ro_server):
         metadata = {}
+        #self.log.debug("prcessing:%s" % (dir(ro_server)))
+        #self.log.debug("accessIPv4:%s" % (ro_server.accessIPv4))
+        #self.log.debug("is_loaded:%s" % (ro_server.is_loaded()))
+
         for key in ro_server.metadata:
             value = json.loads(ro_server.metadata[key])
             metadata[key] = str(value)
@@ -93,7 +97,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             metadata[key] = {}
         #self.log.debug("prcessing:%s" % (ro_server.id))
         #self.log.debug("server.status:%s" % (ro_server.status))
-        self.log.debug("server.metadata:%s" % (metadata))
+        #self.log.debug("server.metadata:%s" % (metadata))
 
         session_id = metadata['WE_SESSION']
         if not session_id in self.model._sessions:
@@ -106,13 +110,19 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             new_instance._md_whenenv['WE_ID'] = instance_id
             new_instance.sessions.add(session_id)
             self.model._instances[instance_id] = new_instance
+        # Now we know we have instances and sessiosn objects.
+
+        self.model._instances[instance_id].status = str(ro_server.status)
+        self.model._instances[instance_id].os_id = str(ro_server.id)
+
+        # now process the metadata we retrived.
         self.model._sessions[session_id].instances.add(str(metadata['WE_ID']))
         try:
             self.model._sessions[session_id].session_created = date_str.datetime_str_decode(metadata['WE_CREATED'])
         except ValueError, E:
             self.log.error(E)
         self.model._instances[instance_id].sessions.add(str(metadata['WE_SESSION']))
-        self.model._instances[instance_id].os_id = str(ro_server.id)
+
         if 'WE_USER_LABEL' in metadata:
             self.log.error("WE_USER_LABEL='%s'" % (metadata['WE_USER_LABEL']))
             if isinstance(metadata['WE_USER_LABEL'], basestring):
@@ -168,14 +178,17 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         return set(self.model._sessions)
 
     def get_session_current(self):
-        self.log.error("get_session_current")
+        #self.log.error("get_session_current")
         if self.model.session_id == None:
             config = nvclient_view_nvsession.view_nvsession(self.model)
             match_sessions = config.get_mattching_sessions()
+            #self.log.error("match_sessions:%s" % (match_sessions))
             if len(match_sessions) == 1:
                 self.model.session_id = match_sessions.pop()
-            self.log.error("match_sessions:id:%s" % (self.model.session_id))
+            #self.log.error("match_sessions:id:%s" % (self.model.session_id))
         #self.log.error("get_session_current:id:%s" % (self.model.session_id))
+        if self.model.session_id == None:
+            return None
         return str(self.model.session_id)
 
     def list_instance_id(self,session_name):
@@ -193,23 +206,24 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
                 continue
             we_id_mapping[weid] = self.model._instances[weid].os_id
             os_id_list.add(self.model._instances[weid].os_id)
-        self.log.debug("os_id_list:%s" % (os_id_list))
         server_list = self._nova_con.servers.list()
         for server in server_list:
-                #print "prcessing:%s" % (server.id)
             if server.id in os_id_list:
                 self.log.debug("deleting:%s" % (server.name))
-                server.delete()
+                try:
+                    server.delete()
+                except:
+                    pass
 
         for weid in we_id_mapping.keys():
-            self.log.debug("weid:%s" % (weid))
-            self.log.debug("server.status:%s" % (server.status))
+            #self.log.debug("weid:%s" % (weid))
+            #self.log.debug("server.status:%s" % (server.status))
             for session in self.model._instances[weid].sessions:
-                self.log.debug("self.model._instances[weid].sessions:%s" % (session))
-                self.log.debug("instances:%s" % (self.model._sessions[session].instances))
+                #self.log.debug("self.model._instances[weid].sessions:%s" % (session))
+                #self.log.debug("instances:%s" % (self.model._sessions[session].instances))
 
                 self.model._sessions[session].instances.remove(weid)
-                self.log.debug("instances:%s" % (self.model._sessions[session].instances))
+                #self.log.debug("instances:%s" % (self.model._sessions[session].instances))
 
             del(self.model._instances[weid])
 
@@ -324,6 +338,9 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
 
 
     def add_metadata(self,instance_id,metadata):
+        if not instance_id in self.model._instances.keys():
+            self.log.error("Invalid instance_id=%s" % (instance_id))
+            return False
         inmetadata = set(metadata.keys())
         session_id = iter(self.model._instances[instance_id].sessions).next()
         current_session = set(self.model._sessions[session_id]._md_whenenv.keys())
@@ -403,6 +420,18 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             self.log.error("overlimit:" %(E))
             return None
         self.model._instances[instance_id].os_id = unicode(instance.id)
+        boot_delay = True
+        while boot_delay:
+            time.sleep(5)
+            booted = set()
+            try:
+                instance = self._nova_con.servers.get(self.model._instances[instance_id].os_id)
+            except:
+                continue
+            status = instance.status
+            if status == 'BUILD':
+                continue
+            boot_delay = False
         return instance_id
 
     def list_flavor_id(self):
