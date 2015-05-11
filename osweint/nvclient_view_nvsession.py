@@ -93,6 +93,8 @@ class view_nvsession(object):
                 self.log.error('TODO:account for this state')
                 assert(False)
             if self.model._sessions[session].session_type != sessionset:
+                self.log.debug('self.model._sessions[session].session_type=%s' % (self.model._sessions[session].session_type))
+                self.log.debug('sessionset=%s' % (sessionset))
                 continue
             session_terminal_set = env_set_termial.intersection(self.model._sessions[session]._md_whenenv)
             if session_terminal_set != terminal_set:
