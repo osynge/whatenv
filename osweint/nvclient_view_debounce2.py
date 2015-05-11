@@ -93,7 +93,7 @@ def clean_lsblk(intext):
 
 
 
-def update_instance_data(instace):
+def update_instance_data(instance):
     addresses = set()
     for netwrok in instance.networks:
         for address in instance.networks[netwrok]:
@@ -161,9 +161,9 @@ class view_debounce(nvclient_view_con.view_nvclient_con):
             subprocess.call(["ssh-keygen", "-R", address])
         # check all addresses can be connected to.
         connected = sshhosts(pinged)
-        self.log.debug("connected=%s" % ( connected))
         for instance in instances:
             os_id = self.model._instances[instance].os_id
             instance = connection._nova_con.servers.get(os_id)
             metadata = update_instance_data(instance)
             self.log.debug("metadata=%s" % ( metadata))
+            self.model._instances[instance].debounced.update(metadata)

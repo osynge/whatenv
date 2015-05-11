@@ -52,6 +52,7 @@ class model_instance(object):
         # Values taken from nova api
         # in addition a "REQUESTED" state.
         self.status = None
+        self.debounced = {}
 
 class model_nvclient(object):
     def __init__(self):
