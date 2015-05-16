@@ -72,8 +72,8 @@ class TestLaunch(unittest.TestCase):
         metadata["OS_FLAVOR_NAME"] = "m1.large"
         metadata["OS_FLAVOR_ID"] = "ss"
         metadata["OS_NAME"] = "m1.tindfdfdy"
-        metadata["OS_IMAGE_HUMAN_NAME"] = "m1.sdsdsdsds"
-        metadata["WE_TYPE_UUID"] = "m1.tsdsdsdiny"
+        metadata["OS_IMAGE_HUMAN_NAME"] = "SLE_12"
+        metadata["WE_TYPE_UUID"] = "m1.large"
         
         
         self.connection.add_metadata(instance_id,metadata)
