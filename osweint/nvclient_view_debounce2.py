@@ -145,10 +145,10 @@ class view_debounce(nvclient_view_con.view_nvclient_con):
         self.log = logging.getLogger("view_debounce")
 
     def debounce(self, connection, session_id):
-        instances = set(self.model._sessions[session_id].instances)
-        self.log.debug("instances=%s" % (instances))
+        instance_set = set(self.model._sessions[session_id].instances)
+        self.log.debug("instance_set=%s" % (instance_set))
         addresses = set()
-        for instance in instances:
+        for instance in instance_set:
             os_id = self.model._instances[instance].os_id
             instance = connection._nova_con.servers.get(os_id)
             for netwrok in instance.networks:
@@ -161,9 +161,11 @@ class view_debounce(nvclient_view_con.view_nvclient_con):
             subprocess.call(["ssh-keygen", "-R", address])
         # check all addresses can be connected to.
         connected = sshhosts(pinged)
-        for instance in instances:
-            os_id = self.model._instances[instance].os_id
+        # We need a fresh set of instances here
+        instance_set = set(self.model._sessions[session_id].instances)
+        for instance_id in instance_set:
+            os_id = self.model._instances[instance_id].os_id
             instance = connection._nova_con.servers.get(os_id)
             metadata = update_instance_data(instance)
             self.log.debug("metadata=%s" % ( metadata))
-            self.model._instances[instance].debounced.update(metadata)
+            self.model._instances[instance_id].debounced.update(metadata)
