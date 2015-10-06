@@ -12,3 +12,6 @@ def validate_required(args,required):
     if "state" in required:
         if args.state == None:
             raise argparse.ArgumentError(None, "state file missing")
+    if "session" in required:
+        if args.state == None:
+            raise argparse.ArgumentError(None, "session file missing")

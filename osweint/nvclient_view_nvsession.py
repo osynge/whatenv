@@ -67,7 +67,7 @@ class view_nvsession(object):
     def env_previous(self):
         self.log.error("Depricated method env_previous")
         return self.get_mattching_keys()
-        
+
     def get_mattching_sessions(self):
         output = set()
         env_var = getenviromentvars()
@@ -113,4 +113,4 @@ class view_nvsession(object):
                 continue
             output.add(session)
         return output
-    
+

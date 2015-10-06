@@ -3,12 +3,14 @@ import logging
 import sys
 from __version__ import version
 import config
-import nvclient_mvc
+
 
 from textwrap import dedent
 from ap_common import validate_required
 
-
+from ap_buildup import subparser_buildup
+from ap_manage import subparser_manage
+from ap_teardown import subparser_teardown
 
 
 
@@ -158,56 +160,7 @@ def main():
         sys.exit(1)
 
 
-    if "all" in actions:
-        controler = nvclient_mvc.controler()
-        controler.read_config(cfg)
-        controler.connect()
-        controler.delete_session_all()
 
-    if "list" in actions:
-
-        controler = nvclient_mvc.controler()
-        controler.read_config(cfg)
-        controler.connect()
-        controler.list()
-    if "list_session" in actions:
-
-        controler = nvclient_mvc.controler()
-        controler.read_config(cfg)
-        controler.connect()
-        controler.list_sessions()
-
-    if "session_del" in actions:
-
-        controler = nvclient_mvc.controler()
-        controler.read_config(cfg)
-        controler.connect()
-        if session == None:
-            session = controler.get_current_session()
-        controler.delete_session(session)
-        
-    if len(missing_deps):
-        for dep in missing_deps:
-            log.error('Missing paramter:%s' %  (dep))
-        sys.exit(1)
-
-
-    if "all" in actions:
-        controler = nvclient_mvc.controler()
-        controler.read_config(cfg)
-        controler.connect()
-        controler.delete_session_all()
-
-    if "list" in actions:
-
-        controler = nvclient_mvc.controler()
-        controler.read_config(cfg)
-    if "filter_state" in actions:
-        controler = nvclient_mvc.controler()
-        controler.read_config(cfg)
-        controler.connect()
-        controler.state_load(input_file)
-        controler.filter_instances(label_filter)
     return
 if __name__ == "__main__":
     main()

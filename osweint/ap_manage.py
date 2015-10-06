@@ -1,7 +1,7 @@
 import logging
+import config
 from ap_common import validate_required
-
-
+import nvclient_mvc
 
 def manage(args):
     log = logging.getLogger("buildup")
@@ -11,6 +11,26 @@ def manage(args):
     except argparse.ArgumentError, E:
         log.error(E)
         sys.exit(1)
+    cfg = config.cfg()
+
+    if args.cfg:
+        cfg.read(args.cfg)
+
+    if args.session_list:
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.list_sessions()
+        return 0
+
+    if args.instance_list:
+        controler = nvclient_mvc.controler()
+        controler.read_config(cfg)
+        controler.connect()
+        controler.list()
+        return 0
+    log.error("No action set")
+    return 10
 
 def subparser_manage(subparsers):
     manage_parser = subparsers.add_parser('manage', help='Manage session')
