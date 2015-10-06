@@ -6,79 +6,11 @@ import config
 import nvclient_mvc
 
 from textwrap import dedent
+from ap_common import validate_required
 
 
 
-def validate_required(args,required):
-    log = logging.getLogger("validate_required")
-    if "steering" in required:
-        if args.steering == None:
-            raise argparse.ArgumentError(None, "steering file missing")
-    if "cfg" in required:
-        if args.cfg == None:
-            raise argparse.ArgumentError(None, "cfg file missing")
-    if "state" in required:
-        if args.state == None:
-            raise argparse.ArgumentError(None, "state file missing")
 
-
-def buildup(args):
-    log = logging.getLogger("buildup")
-    log.info("debug=%s" % args)
-    try:
-        validate_required(args,["cfg","state","steering"])
-    except argparse.ArgumentError, E:
-        log.error(E)
-        sys.exit(1)
-
-def subparser_buildup(subparsers):
-    buildup_parser = subparsers.add_parser('buildup', help='Build session')
-    buildup_parser.set_defaults(
-        func=buildup,
-        description=buildup.__doc__,
-        help=buildup.__doc__,
-        )
-    return buildup_parser
-
-def manage(args):
-    log = logging.getLogger("buildup")
-    log.info("debug=%s" % args)
-    try:
-        validate_required(args,["cfg","state","steering"])
-    except argparse.ArgumentError, E:
-        log.error(E)
-        sys.exit(1)
-
-def subparser_manage(subparsers):
-    manage_parser = subparsers.add_parser('manage', help='Manage session')
-    manage_parser.add_argument('--session-list', action ='store_true',help='list sessions')
-    manage_parser.add_argument('--instance-list', action ='store_true',help='list instances')
-    manage_parser.set_defaults(
-        func=manage,
-        description=manage.__doc__,
-        help=manage.__doc__,
-        )
-    return manage_parser
-
-def teardown(args):
-    log = logging.getLogger("buildup")
-    log.info("debug=%s" % args)
-    try:
-        validate_required(args,["cfg","state","steering"])
-    except argparse.ArgumentError, E:
-        log.error(E)
-        sys.exit(1)
-
-def subparser_teardown(subparsers):
-    teardown_parser = subparsers.add_parser('teardown', help='Teardown session')
-    teardown_parser.add_argument('--all', action ='store_true',help='teardown all VM')
-    teardown_parser.add_argument('--bysession', action ='store_true',help='LEGACY:shutdown vms by session')
-    teardown_parser.set_defaults(
-        func=teardown,
-        description=teardown.__doc__,
-        help=teardown.__doc__,
-        )
-    return teardown_parser
 
 def parser_get():
     p = argparse.ArgumentParser(version = version)
