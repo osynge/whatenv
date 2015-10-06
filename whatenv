@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+import osweint.ap_main
+import logging
+
+
+if __name__ == '__main__':
+    osweint.ap_main.main()
