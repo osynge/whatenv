@@ -68,10 +68,31 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             self.model._images[item].os_name = ro_server.name
 
 
-
-
-
-
+    def update_network(self):
+        print self.model._networks
+        network_list = self._nova_con.networks.list()
+        for network in network_list:
+            self.log.error("network:%s=%s" % ( network.human_id,network.id))
+        new_networks = set()
+        found_networks = set()
+        known = set(self.model._networks.keys())
+        network_list = self._nova_con.networks.list()
+        for network in network_list:
+            os_human_name = str(network.human_id)
+            os_id = str(network.id)
+            referance = None
+            for item in known:
+                if self.model._networks[item].os_name == os_human_name:
+                    referance = item
+                    break
+            if referance != None:
+                self.model._networks[referance].os_id = os_id
+            else:
+                identifier = str(uuid.uuid4())
+                new_network = model_nvnetwork()
+                new_network.os_id = os_id
+                new_network.os_name = os_human_name
+                self.model._networks[identifier] = new_network
 
     def update_instance(self, ro_server):
         metadata = {}
@@ -165,7 +186,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         images_list = self._nova_con.images.list()
         for images in images_list:
             self.update_images(images)
-
+        self.update_network()
         server_list = self._nova_con.servers.list()
         for server in server_list:
             self.update_instance(server)
@@ -351,7 +372,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             self.model._instances[instance_id]._md_whenenv[key] = metadata[key]
 
 
-    def boot_instance(self,instance_id,images_id,flavor_id):
+    def boot_instance(self,instance_id,images_id,flavor_id,network_id):
 
 
 
@@ -398,11 +419,14 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         os_flavor_id = metadata["OS_FLAVOR_ID"]
 
         boot_args = [instance_name, self.model._images[images_id].os_id, self.model._flavors[flavor_id].os_id]
-
+        network_list = self._nova_con.networks.list()
+        for network in network_list:
+            self.log.error("network:%s=%s" % ( network.human_id,network.id))
+                
         boot_kwargs = {'files': {},
             'userdata': None,
             'availability_zone': None,
-            'nics': [],
+            'nics': [{ 'net-id': network_id}],
             'block_device_mapping': {},
             'max_count': 1,
             'meta': foo,

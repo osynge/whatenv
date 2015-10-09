@@ -3,6 +3,13 @@ import config
 from ap_common import validate_required
 import nvclient_mvc
 
+from osweint.nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
+from osweint.nvclient_view_config import view_vmclient_config
+import osweint.config
+from osweint.nvclient_view_nvclient_connected import view_nvclient_connected
+from osweint.nvclient_view_buildup import view_buildup
+from osweint.nvclient_view_buildup import Error as Error_view_buildup
+
 def buildup(args):
     log = logging.getLogger("buildup")
     log.info("debug=%s" % args)
@@ -11,23 +18,25 @@ def buildup(args):
     except argparse.ArgumentError, E:
         log.error(E)
         sys.exit(1)
+    sessionId = None
 
-    cfg = config.cfg()
-    if args.cfg:
-        cfg.read(args.cfg)
+
+    if args.session:
+        sessionId = args.session
+
 
 
     if args.start:
-        controler = nvclient_mvc.controler()
-        controler.read_config(cfg)
-        controler.connect()
-        try:
-            controler.buildup(args.steering)
-            controler.state_store(args.state)
-        except nvclient_mvc.Error, E:
-            log.error(E)
-            sys.exit(1)
-
+        mclient = model_nvclient()
+        config = view_vmclient_config(mclient)
+        config_data = osweint.config.cfg()
+        config_data.read(args.cfg)
+        config.cfg_apply(config_data)
+        connection = view_nvclient_connected(mclient)
+        connection.connect()
+        connection.update()
+        builder = view_buildup(mclient)
+        builder.enstantiate(args.steering,connection)
 
 
     log.error("No action set")

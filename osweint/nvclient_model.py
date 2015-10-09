@@ -13,10 +13,11 @@ class model_nvsession(object):
 
 class model_nvnetwork(object):
     def __init__(self):
-        self.uuid = None
+        self.os_id = None
         self.os_name = None
         self.ipv4 = None
-
+    def __repr__(self):
+        return "<mnet %s,%s>" % (self.os_id, self.os_name)
 
 class model_flavor(object):
     def __init__(self):
@@ -60,7 +61,8 @@ class model_nvclient(object):
         self._sessions = {}
         self._flavors = {}
         self._images = {}
-        
+        self._networks = {}
+
         self.nova_creds = {}
         self.keystone_creds = {}
         self.session_id = None

@@ -53,6 +53,11 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
         if len(instance_data) == 0:
             return False
 
+        network_data = steering_data.get("network", {})
+        self.log.error("network_data=%s" % (network_data))
+        if len(network_data) == 0:
+            return False
+
         label_data = steering_data.get("label", {})
 
         # we have intial data
@@ -68,7 +73,7 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
         self.log.error("session_id=%s" % (session_id))
         known_images = set(self.model._images.keys())
         known_flavors = set(self.model._flavors.keys())
-
+        known_networks = set(self.model._networks.keys())
 
         imagedict = {}
         for image_uuid in image_data:
@@ -87,7 +92,16 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
                 if self.model._flavors[flavor_id].os_name == flavorname:
                     matching_flavor.add(flavor_id)
             flavordict[flavor_uuid] = matching_flavor
-
+        self.log.error("flavordict=%s" % (flavordict))
+        networkdict = {}
+        for network_uuid in network_data:
+            networkname = str(network_data[network_uuid]["OS_NETWORK_NAME"])
+            matching_network = set()
+            for network_id in known_networks:
+                if self.model._networks[network_id].os_name == networkname:
+                    matching_network.add(network_id)
+            networkdict[network_uuid] = matching_network
+        self.log.error("networkdict=%s" % (networkdict))
         labeldict = dict(label_data)
 
 
@@ -108,8 +122,9 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             metadata = {}
             label_uuid = []
             image_uuid = instance_data[instance_uuid]["uuid_image"]
-            self.log.error("image_uuid=%s" % (image_uuid))
             flavor_uuid = instance_data[instance_uuid]["uuid_flavour"]
+            network_uuid = instance_data[instance_uuid]["uuid_network"]
+
             if len(labeldict) > 0:
                 label_uuid = instance_data[instance_uuid].get("usr_label",[])
             image = set(imagedict.get(image_uuid,set()))
@@ -120,14 +135,22 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             if len(flavor) != 1:
                 self.log.error("not found flavor_uuid=%s" % (flavor))
                 continue
+            print type(network_uuid),network_uuid,networkdict,networkdict.keys()
+            network = set(networkdict.get(network_uuid,set()))
+            if len(network) != 1:
+                self.log.error("not found network_uuid=%s" % (network_uuid))
+                self.log.error("known=%s" % (networkdict))
+                self.log.error("network=%s" % (network))
+                continue
             self.log.error("image=%s" % (image))
 
 
             image_id = image.pop()
             flavor_id = flavor.pop()
+            network_id = network.pop()
             self.model._instances[instance_id].flavors = flavor
-
-
+            self.log.error("network_uuid=%s" % (network_uuid))
+            self.log.error("network_id=%s" % (network_id))
             self.log.error("flavor=%s" % (flavor))
 
             instance_data[instance_uuid]
@@ -156,8 +179,10 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             metadata['OS_NAME'] = instance_name
             metadata['OS_IMAGE_HUMAN_NAME'] = instance_name
             metadata['OS_FLAVOR_ID'] = self.model._flavors[flavor_id].os_id
+            metadata['OS_NETWORK_NAME'] = self.model._networks[network_id].os_name
+            metadata['OS_NETWORK_ID'] = self.model._networks[network_id].os_id
             builder.add_metadata(instance_id,metadata)
-            builder.boot_instance(instance_id,image_id,flavor_id)
+            builder.boot_instance(instance_id,image_id,flavor_id,self.model._networks[network_id].os_id)
 
 
 
