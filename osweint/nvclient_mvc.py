@@ -11,6 +11,9 @@ import nvclient_view_debounce
 import nvclient_view_con
 import types
 from nvclient_view_config import view_vmclient_config
+
+LOG = logging.getLogger(__name__)
+
 class Error(Exception):
     """
     Error
@@ -109,17 +112,9 @@ class controler(object):
         print json.dumps(outputer.list_sessions_default() , sort_keys=True, indent=4)
 
     def delete_session(self,sessionID):
-        print self.model_nvclient
-        config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
-        config.env_apply()
-        
-        
-        deleter = view_delete(self.model_nvclient)
-        print self.model_nvclient
-        deleter.connect()
         instances = self.connection.list_instance_id(sessionID)
-        for instance in instances:
-            self.connection.list_instance_id(sessionID)
+        LOG.debug("instances = %s" % (instances))
+        metadata = self.connection.delete_instance_id(instances)
 
     def delete_session_all(self):
         config = nvclient_view_nvsession.view_nvsession(self.model_nvclient)
