@@ -467,3 +467,10 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
 
     def list_images_id(self):
         return set(self.model._images.keys())
+
+    def list_network_os_id(self):
+        os_net_ids = set()
+        for network in self.model._networks.keys():
+            os_net_ids.add(self.model._networks[network].os_id)
+        return os_net_ids
+
