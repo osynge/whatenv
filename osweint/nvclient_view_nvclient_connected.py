@@ -1,5 +1,6 @@
 import logging
 import json
+import os
 from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient, model_flavor,model_images
 
 import nvclient_view_con
@@ -251,13 +252,13 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
 
     def create_session(self,session_id):
         self._nova_con.images.list()
-
-        if not self._nova_con.keypairs.findall(name="mykey"):
-            if not os.path.isfile('~/.ssh/id_rsa.pub'):
-                self.log.error("Public key file: '~/.ssh/id_rsa.pub' is missing")
+        session_key = self.model.sshkey_name
+        if not self._nova_con.keypairs.findall(name=session_key):
+            if not os.path.isfile(self.model.sshkey_public):
+                self.log.error("Public key file: %s is missing" %s (self.model.sshkey_public))
                 sys.exit(1)
-            with open(os.path.expanduser('~/.ssh/id_rsa.pub')) as fpubkey:
-                self._nova_con.keypairs.create(name="mykey", public_key=fpubkey.read())
+            with open(os.path.expanduser(self.model.sshkey_public)) as fpubkey:
+                self._nova_con.keypairs.create(name=session_key, public_key=fpubkey.read())
 
 
         #imagedict = {}
@@ -414,7 +415,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             foo[metakey] = json.dumps(metadata[metakey])
 
         instance_name = "whenenv-%s" % (instance_id)
-        #instance = nova.servers.create(instance_name, image, flavor, key_name="mykey",metadata =  foo)
+        #instance = nova.servers.create(instance_name, image, flavor, key_name=session_key,metadata =  foo)
         os_image_id = metadata["OS_IMAGE_ID"]
         os_flavor_id = metadata["OS_FLAVOR_ID"]
 
@@ -431,7 +432,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
             'max_count': 1,
             'meta': foo,
             'key_name':
-            'mykey',
+            self.model.sshkey_name,
             'min_count': 1,
             'scheduler_hints': {},
             'reservation_id': None,
@@ -466,4 +467,3 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
 
     def list_images_id(self):
         return set(self.model._images.keys())
-
