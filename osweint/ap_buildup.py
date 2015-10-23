@@ -2,6 +2,8 @@ import logging
 import config
 from ap_common import validate_required
 import nvclient_mvc
+import argparse
+import sys
 
 from osweint.nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient
 from osweint.nvclient_view_config import view_vmclient_config
