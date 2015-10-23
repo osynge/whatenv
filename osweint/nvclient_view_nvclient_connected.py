@@ -442,7 +442,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         try:
             instance = self._nova_con.servers.create(*boot_args, **boot_kwargs)
         except OverLimit, E:
-            self.log.error("overlimit:" %(E))
+            self.log.error("overlimit:%s" %(E))
             return None
         self.model._instances[instance_id].os_id = unicode(instance.id)
         boot_delay = True
