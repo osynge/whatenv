@@ -66,6 +66,10 @@ class model_nvclient(object):
         self.nova_creds = {}
         self.keystone_creds = {}
         self.session_id = None
-
-
+        self.username = None
+        self.password = None
+        self.auth_url = None
+        self.project_name = None
+        self.sshkey_public = None
+        self.sshkey_private = None
 
