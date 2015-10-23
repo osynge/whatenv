@@ -74,9 +74,15 @@ class TestTwoSession(unittest.TestCase):
         #log.error("flavor_list = %s" % (flavor_list))
         flavour_id = flavor_list.pop()
         
+        network_list = self.connection.list_network_os_id()
+        assert (network_list != None)
+        #log.error("network_list = %s" % (network_list))
+        network_id = network_list.pop()
+        
         
         images_list = self.connection.list_images_id()
         images_id = images_list.pop()
+        
         metadata = self.connection.gen_metadata(instance_id)
         #log.error("gen_metadata = %s" % (metadata))
         metadata["OS_IMAGE_NAME"] = "SLES12" 
@@ -88,7 +94,12 @@ class TestTwoSession(unittest.TestCase):
         
         
         self.connection.add_metadata(instance_id,metadata)
-        result = self.connection.boot_instance(instance_id,images_id,flavour_id)
+        result = self.connection.boot_instance(
+                instance_id,
+                images_id,
+                flavour_id,
+                network_id
+            )
         assert (instance_id == result)
         instance_list = self.connection.list_instance_id(self.session1)
         assert (instance_id in instance_list)
@@ -124,6 +135,12 @@ class TestTwoSession(unittest.TestCase):
         flavour_id = flavor_list.pop()
         
         
+        network_list = self.connection.list_network_os_id()
+        assert (network_list != None)
+        #log.error("network_list = %s" % (network_list))
+        network_id = network_list.pop()
+        
+        
         images_list = self.connection.list_images_id()
         images_id = images_list.pop()
         metadata = self.connection.gen_metadata(instance_id)
@@ -137,7 +154,12 @@ class TestTwoSession(unittest.TestCase):
         
         
         self.connection.add_metadata(instance_id,metadata)
-        result = self.connection.boot_instance(instance_id,images_id,flavour_id)
+        result = self.connection.boot_instance(
+                instance_id,
+                images_id,
+                flavour_id,
+                network_id
+            )
         assert (instance_id == result)
         instance_list = self.connection.list_instance_id(self.session2)
         assert (instance_id in instance_list)
