@@ -54,10 +54,6 @@ def pinghosts(addresses):
     return host_operation(addresses,"ping -c 1 %s")
 
 
-def sshhosts(addresses):
-    return host_operation(addresses,"ssh -o StrictHostKeyChecking=no root@%s echo")
-
-
 
 
 def clean_ssh_hostname(intext):
@@ -92,57 +88,73 @@ def clean_lsblk(intext):
     return filtered_text
 
 
-
-def update_instance_data(instance):
-    addresses = set()
-    for netwrok in instance.networks:
-        for address in instance.networks[netwrok]:
-            addresses.add(address)
-    for address in addresses:
-        subprocess.call(["ssh-keygen", "-R", address])
-    hostname_short = set()
-    for address in addresses:
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s hostname" % (address))
-        rc,stdout,stderr = croc.run(timeout=30)
-        if rc != 0:
-            continue
-        hostname_short.add(clean_ssh_hostname(stdout))
-    hostname_long = set()
-    for address in addresses:
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s hostname -f" % (address))
-        rc,stdout,stderr = croc.run(timeout=30)
-        if rc != 0:
-            continue
-        hostname_long.add(clean_ssh_hostname(stdout))
-    hostname_short_connected = set()
-    disk_details = {}
-    for hostname in hostname_short:
-        subprocess.call(["ssh-keygen", "-R", hostname])
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s lsblk --pairs --output-all  --bytes" % (hostname))
-        rc,stdout,stderr = croc.run(timeout=30)
-        if rc != 0:
-            continue
-        hostname_short_connected.add(hostname)
-        disk_details.update(clean_lsblk(stdout))
-    hostname_long_connected = set()
-    for hostname in hostname_long:
-        subprocess.call(["ssh-keygen", "-R", hostname])
-        croc = Command("ssh -o StrictHostKeyChecking=no root@%s lsblk --pairs --output-all  --bytes" % (hostname))
-        rc,stdout,stderr = croc.run(timeout=30)
-        if rc != 0:
-            continue
-        hostname_long_connected.add(hostname)
-        disk_details.update(clean_lsblk(stdout))
-    output = dict()
-    output['VM_HOSTNAME_SHORT'] = list(hostname_short)
-    output['VM_HOSTNAME_LONG'] = list(hostname_long)
-    output['VM_DISK'] = disk_details
-    return output
-
 class view_debounce(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
         nvclient_view_con.view_nvclient_con.__init__(self,model)
         self.log = logging.getLogger("view_debounce")
+
+
+
+    def sshhosts(self, addresses):
+        return host_operation(addresses,"ssh -i %s -o StrictHostKeyChecking=no root@%s echo" % (
+            self.model.sshkey_private,
+            "%s"
+            ))
+
+
+
+    def update_instance_data(self, instance):
+        addresses = set()
+        for netwrok in instance.networks:
+            for address in instance.networks[netwrok]:
+                addresses.add(address)
+        for address in addresses:
+            subprocess.call(["ssh-keygen", "-R", address])
+        hostname_short = set()
+        for address in addresses:
+            croc = Command("ssh -i %s -o StrictHostKeyChecking=no root@%s hostname" % (
+                self.model.sshkey_private,
+                address
+                ))
+            rc,stdout,stderr = croc.run(timeout=30)
+            if rc != 0:
+                continue
+            hostname_short.add(clean_ssh_hostname(stdout))
+        hostname_long = set()
+        for address in addresses:
+            croc = Command("ssh -i %s -o StrictHostKeyChecking=no root@%s hostname -f" % (
+                self.model.sshkey_private,
+                address
+                ))
+            rc,stdout,stderr = croc.run(timeout=30)
+            if rc != 0:
+                continue
+            hostname_long.add(clean_ssh_hostname(stdout))
+        hostname_short_connected = set()
+        disk_details = {}
+        for hostname in hostname_short:
+            subprocess.call(["ssh-keygen", "-R", hostname])
+            croc = Command("ssh -o StrictHostKeyChecking=no root@%s lsblk --pairs --output-all  --bytes" % (hostname))
+            rc,stdout,stderr = croc.run(timeout=30)
+            if rc != 0:
+                continue
+            hostname_short_connected.add(hostname)
+            disk_details.update(clean_lsblk(stdout))
+        hostname_long_connected = set()
+        for hostname in hostname_long:
+            subprocess.call(["ssh-keygen", "-R", hostname])
+            croc = Command("ssh -o StrictHostKeyChecking=no root@%s lsblk --pairs --output-all  --bytes" % (hostname))
+            rc,stdout,stderr = croc.run(timeout=30)
+            if rc != 0:
+                continue
+            hostname_long_connected.add(hostname)
+            disk_details.update(clean_lsblk(stdout))
+        output = dict()
+        output['VM_HOSTNAME_SHORT'] = list(hostname_short)
+        output['VM_HOSTNAME_LONG'] = list(hostname_long)
+        output['VM_DISK'] = disk_details
+        return output
+
 
     def debounce(self, connection, session_id):
         instance_set = set(self.model._sessions[session_id].instances)
@@ -160,12 +172,12 @@ class view_debounce(nvclient_view_con.view_nvclient_con):
         for address in pinged:
             subprocess.call(["ssh-keygen", "-R", address])
         # check all addresses can be connected to.
-        connected = sshhosts(pinged)
+        connected = self.sshhosts(pinged)
         # We need a fresh set of instances here
         instance_set = set(self.model._sessions[session_id].instances)
         for instance_id in instance_set:
             os_id = self.model._instances[instance_id].os_id
             instance = connection._nova_con.servers.get(os_id)
-            metadata = update_instance_data(instance)
+            metadata = self.update_instance_data(instance)
             self.log.debug("metadata=%s" % ( metadata))
             self.model._instances[instance_id].debounced.update(metadata)
