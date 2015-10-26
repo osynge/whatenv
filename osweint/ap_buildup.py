@@ -27,8 +27,6 @@ def buildup(args):
     if args.session:
         sessionId = args.session
 
-
-
     if args.start:
         mclient = model_nvclient()
         config = view_vmclient_config(mclient)
@@ -42,6 +40,7 @@ def buildup(args):
         builder.enstantiate(args.steering,connection)
         connection.update()
         connection.persist(args.state)
+        return
 
     log.error("No action set")
     return 10
