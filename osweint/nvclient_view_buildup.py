@@ -135,7 +135,6 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             if len(flavor) != 1:
                 self.log.error("not found flavor_uuid=%s" % (flavor))
                 continue
-            print type(network_uuid),network_uuid,networkdict,networkdict.keys()
             network = set(networkdict.get(network_uuid,set()))
             if len(network) != 1:
                 self.log.error("not found network_uuid=%s" % (network_uuid))
@@ -149,9 +148,9 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             flavor_id = flavor.pop()
             network_id = network.pop()
             self.model._instances[instance_id].flavors = flavor
-            self.log.error("network_uuid=%s" % (network_uuid))
-            self.log.error("network_id=%s" % (network_id))
-            self.log.error("flavor=%s" % (flavor))
+            self.log.debug("network_uuid=%s" % (network_uuid))
+            self.log.debug("network_id=%s" % (network_id))
+            self.log.debug("flavor=%s" % (flavor))
 
             instance_data[instance_uuid]
             labels = {}
@@ -171,7 +170,7 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
             metadata["WE_CREATED"] = session_created
 
 
-            self.log.error("image_id=%s" % (image_id))
+            self.log.debug("image_id=%s" % (image_id))
             instance_name = "whatenv-%s" % (generator)
             metadata['WE_SESSION'] = session_id
             metadata['WE_USER_LABEL'] = labels
