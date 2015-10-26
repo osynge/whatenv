@@ -8,7 +8,8 @@ import sys
 import subprocess
 from command_runner import Command
 import nvclient_view_con
-
+from osweint.nvclient_view_json2 import view_json_client as mdl2dict
+from osweint.nvclient_view_updator import view_mdl_update_nvclient
 
 def read_input(filename):
     f = open(filename)
@@ -145,8 +146,10 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
         self.log = logging.getLogger("view.buildup")
 
     def debounce(self, state_filename):
-
         output_data = read_input(state_filename)
+        os_updator = view_mdl_update_nvclient(self.model, self._nova_con)
+        os_updator.update()
+
         self.log.debug("here")
         #print output_data
         # Get full list of addresses
