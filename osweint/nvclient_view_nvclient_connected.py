@@ -1,7 +1,7 @@
 import logging
 import json
 import os
-from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient, model_flavor,model_images
+from nvclient_model import model_nvsession, model_nvnetwork, model_instance, model_nvclient, model_flavor,model_images, model_instance_network
 
 import nvclient_view_con
 import date_str
@@ -9,9 +9,12 @@ import nvclient_view_nvsession
 import uuid
 
 from environ import getenviromentvars
-from novaclient.exceptions import OverLimit,from_response
+from novaclient.exceptions import OverLimit,from_response, NotFound
 import date_str
 import time
+
+
+from osweint.nvclient_view_json2 import view_json_client as mdl2dict
 
 class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
@@ -70,7 +73,6 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
 
 
     def update_network(self):
-        print self.model._networks
         network_list = self._nova_con.networks.list()
         for network in network_list:
             self.log.error("network:%s=%s" % ( network.human_id,network.id))
@@ -94,6 +96,38 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
                 new_network.os_id = os_id
                 new_network.os_name = os_human_name
                 self.model._networks[identifier] = new_network
+
+    def update_instance_network(self, instance_id):
+        try:
+            instance = self._nova_con.servers.get(self.model._instances[instance_id].os_id)
+        except NotFound:
+            return
+
+        os_dict = {}
+        known_dict = {}
+        for network in instance.networks:
+            os_dict[str(network)] = instance.networks[network]
+        # Delete extra networks
+        for netobjkey in self.model._instances[instance_id].networks:
+            known_dict[self.model._instances[instance_id].networks[netobjkey].os_name] = self.model._instances[instance_id].networks[netobjkey].os_address
+        set_os_netwoks_found = set(os_dict.keys())
+        set_known_netwokrs = set(known_dict.keys())
+        missing = set_os_netwoks_found.difference(set_known_netwokrs)
+        extra = set_known_netwokrs.difference(set_os_netwoks_found)
+        intersection = set_known_netwokrs.intersection(set_os_netwoks_found)
+        for network in missing:
+            networkid = str(uuid.uuid1())
+            netobj = model_instance_network()
+            netobj.os_name = network
+            netobj.os_address = os_dict[network]
+            self.model._instances[instance_id].networks[networkid] = netobj
+        for network in extra:
+            del self.model._instances[instance_id].networks[network]
+        for network in intersection:
+            for netobjkey in self.model._instances[instance_id].networks:
+                if self.model._instances[instance_id].networks[netobjkey].os_name != network:
+                    continue
+                self.model._instances[instance_id].networks[netobjkey].os_address = os_dict[network]
 
     def update_instance(self, ro_server):
         metadata = {}
@@ -179,6 +213,31 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         for key in updateset:
             self.model._sessions[session_id]._md_whenenv[key] = metadata[key]
 
+    def get_instances_booting(self):
+        instance_id_booting = set()
+        for instance_id in self.model._instances:
+            if self.model._instances[instance_id].status == 'BUILD':
+                instance_id_booting.add(instance_id)
+        return instance_id_booting
+
+    def update_instances_all(self):
+        server_list = self._nova_con.servers.list()
+        for server in server_list:
+            self.update_instance(server)
+        # get status for instances after booted.
+        instance_id_booting = self.get_instances_booting()
+        while len(instance_id_booting) > 0:
+            time.sleep(5)
+            for booting_instance in instance_id_booting:
+                instance = self._nova_con.servers.get(self.model._instances[instance_id].os_id)
+                self.update_instance(instance)
+            instance_id_booting = self.get_instances_booting()
+        for instance_id in self.model._instances.keys():
+            self.update_instance_network(instance_id)
+
+
+
+
 
     def update(self):
         flavor_list = self._nova_con.flavors.list()
@@ -188,9 +247,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         for images in images_list:
             self.update_images(images)
         self.update_network()
-        server_list = self._nova_con.servers.list()
-        for server in server_list:
-            self.update_instance(server)
+        self.update_instances_all()
 
 
 
@@ -423,7 +480,7 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         network_list = self._nova_con.networks.list()
         for network in network_list:
             self.log.error("network:%s=%s" % ( network.human_id,network.id))
-                
+
         boot_kwargs = {'files': {},
             'userdata': None,
             'availability_zone': None,
@@ -473,4 +530,17 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         for network in self.model._networks.keys():
             os_net_ids.add(self.model._networks[network].os_id)
         return os_net_ids
+
+    def persist(self,filename):
+        conv = mdl2dict(self.model)
+        dictmdl = conv.dump_session(self.model.session_id)
+        fp = open(filename,'w')
+        json.dump(dictmdl, fp, sort_keys=True, indent=4)
+        fp.close()
+
+    def load(self,filename):
+        fp = open(filename,'r')
+        json.load(fp)
+        conv = mdl2dict(self.model)
+        conv.load_session(dictmdl, self.model.session_id)
 
