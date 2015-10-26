@@ -12,6 +12,7 @@ from osweint.nvclient_view_nvclient_connected import view_nvclient_connected
 from osweint.nvclient_view_buildup import view_buildup
 from osweint.nvclient_view_buildup import Error as Error_view_buildup
 
+
 def buildup(args):
     log = logging.getLogger("buildup")
     log.info("debug=%s" % args)
@@ -39,7 +40,8 @@ def buildup(args):
         connection.update()
         builder = view_buildup(mclient)
         builder.enstantiate(args.steering,connection)
-
+        connection.update()
+        connection.persist(args.state)
 
     log.error("No action set")
     return 10
