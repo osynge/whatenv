@@ -1,5 +1,5 @@
 import logging
-
+import json
 
 class view_json_instance_network(object):
     def __init__(self, model):
@@ -72,3 +72,14 @@ class view_json_client(object):
         for session_id in decoded_obj:
             pass
 
+    def persist(self,filename):
+        dictmdl = self.dump_session(self.model.session_id)
+        fp = open(filename,'w')
+        json.dump(dictmdl, fp, sort_keys=True, indent=4)
+        fp.close()
+
+    def load(self,filename):
+        fp = open(filename,'r')
+        json.load(fp)
+        self.load_session(dictmdl, self.model.session_id)
+        fp.close()

@@ -11,7 +11,7 @@ import osweint.config
 from osweint.nvclient_view_nvclient_connected import view_nvclient_connected
 from osweint.nvclient_view_buildup import view_buildup
 from osweint.nvclient_view_buildup import Error as Error_view_buildup
-
+from osweint.nvclient_view_json2 import view_json_client as mdl2dict
 
 def buildup(args):
     log = logging.getLogger("buildup")
@@ -39,7 +39,11 @@ def buildup(args):
         builder = view_buildup(mclient)
         builder.enstantiate(args.steering,connection)
         connection.update()
-        connection.persist(args.state)
+
+        stater = mdl2dict(mclient)
+
+
+        stater.persist(args.state)
         return
 
     log.error("No action set")

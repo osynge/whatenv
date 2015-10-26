@@ -309,17 +309,3 @@ class view_nvclient_connected(nvclient_view_con.view_nvclient_con):
         for network in self.model._networks.keys():
             os_net_ids.add(self.model._networks[network].os_id)
         return os_net_ids
-
-    def persist(self,filename):
-        conv = mdl2dict(self.model)
-        dictmdl = conv.dump_session(self.model.session_id)
-        fp = open(filename,'w')
-        json.dump(dictmdl, fp, sort_keys=True, indent=4)
-        fp.close()
-
-    def load(self,filename):
-        fp = open(filename,'r')
-        json.load(fp)
-        conv = mdl2dict(self.model)
-        conv.load_session(dictmdl, self.model.session_id)
-
