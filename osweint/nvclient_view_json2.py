@@ -1,5 +1,17 @@
 import logging
 
+
+class view_json_instance_network(object):
+    def __init__(self, model):
+        self.log = logging.getLogger("view.instance")
+        self.model = model
+    def list_images_default(self):
+        output = {}
+        output["OS_NAME"] = self.model.os_name
+        output["OS_ADDRESS_LIST"] = self.model.os_address
+        return output
+
+
 class view_json_instance(object):
     def __init__(self, model):
         self.log = logging.getLogger("view.instance")
@@ -16,10 +28,17 @@ class view_json_instance(object):
             output["WE_SESSION"] = session_set.pop()
         output["OS_ID"] = self.model.os_id
         output["OS_IMAGE_HUMAN_NAME"] = self.model.os_image_human_name
+        networks = {}
+        for net in self.model.networks.keys():
+            netobj = view_json_instance_network(self.model.networks[net])
+            networks[net] = netobj.list_images_default()
+
+
+        output["OS_NETWORKS"] = networks
         return output
     def load_images_default(self,decoded_obj):
         for item in decoded_obj:
-            
+
             if item == "WE_USER_LABEL":
                 self.model._md_user = decoded_obj[item]
                 continue
@@ -48,3 +67,8 @@ class view_json_client(object):
                 session[instance_id] = instance_obj.list_images_default()
             output[session_id] = session
         return output
+
+    def load_session(self, decoded_obj, session_id):
+        for session_id in decoded_obj:
+            pass
+
