@@ -38,6 +38,12 @@ class model_images(object):
         self.os_name = None
         self.os_id = None
 
+class model_instance_network(object):
+    def __init__(self):
+        self.os_name = None
+        self.os_address = []
+    def __repr__(self):
+        return "<min %s,%s>" % (self.os_name, self.os_address)
 
 class model_instance(object):
     def __init__(self):
@@ -54,6 +60,7 @@ class model_instance(object):
         # in addition a "REQUESTED" state.
         self.status = None
         self.debounced = {}
+        self.networks = {}
 
 class model_nvclient(object):
     def __init__(self):
