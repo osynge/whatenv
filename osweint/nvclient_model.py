@@ -41,7 +41,9 @@ class model_images(object):
 class model_instance_network(object):
     def __init__(self):
         self.os_name = None
-        self.os_address = []
+        self.os_address = None
+        self.pinged = False
+        self.sshed = False
     def __repr__(self):
         return "<min %s,%s>" % (self.os_name, self.os_address)
 

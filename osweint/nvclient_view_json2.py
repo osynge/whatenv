@@ -8,7 +8,9 @@ class view_json_instance_network(object):
     def list_images_default(self):
         output = {}
         output["OS_NAME"] = self.model.os_name
-        output["OS_ADDRESS_LIST"] = self.model.os_address
+        output["OS_ADDRESS"] = self.model.os_address
+        output["WE_PING"] = self.model.pinged
+        output["WE_SSH"] = self.model.sshed
         return output
 
 

@@ -85,38 +85,56 @@ class view_mdl_update_nvclient(object):
                 new_network.os_id = os_id
                 new_network.os_name = os_human_name
                 self.model._networks[identifier] = new_network
-    
+
     def update_instance_network(self, instance_id):
         try:
             instance = self.nova_con.servers.get(self.model._instances[instance_id].os_id)
         except NotFound:
             return
-            
+
         os_dict = {}
-        known_dict = {}
+        known_networks = set()
         for network in instance.networks:
             os_dict[str(network)] = instance.networks[network]
         # Delete extra networks
-        for netobjkey in self.model._instances[instance_id].networks:
-            known_dict[self.model._instances[instance_id].networks[netobjkey].os_name] = self.model._instances[instance_id].networks[netobjkey].os_address
+        for netobjkey in self.model._instances[instance_id].networks.keys():
+            known_networks.add(self.model._instances[instance_id].networks[netobjkey].os_name)
         set_os_netwoks_found = set(os_dict.keys())
-        set_known_netwokrs = set(known_dict.keys())
-        missing = set_os_netwoks_found.difference(set_known_netwokrs)
-        extra = set_known_netwokrs.difference(set_os_netwoks_found)
-        intersection = set_known_netwokrs.intersection(set_os_netwoks_found)
+        missing = set_os_netwoks_found.difference(known_networks)
+        extra = known_networks.difference(set_os_netwoks_found)
+        intersection = known_networks.intersection(set_os_netwoks_found)
+        # delete extra
+        for addressid in self.model._instances[instance_id].networks.keys():
+            if not self.model._instances[instance_id].networks[addressid].os_name in intersection:
+                del self.model._instances[instance_id].networks[addressid]
+        # add missing
         for network in missing:
-            networkid = str(uuid.uuid1())
-            netobj = model_instance_network()
-            netobj.os_name = network
-            netobj.os_address = os_dict[network]
-            self.model._instances[instance_id].networks[networkid] = netobj
-        for network in extra:
-            del self.model._instances[instance_id].networks[network]
+            for address in os_dict[network]:
+                networkid = str(uuid.uuid1())
+                netobj = model_instance_network()
+                netobj.os_name = network
+                netobj.os_address = address
+                self.model._instances[instance_id].networks[networkid] = netobj
         for network in intersection:
-            for netobjkey in self.model._instances[instance_id].networks:
+            known_addresses = set()
+            for netobjkey in self.model._instances[instance_id].networks.keys():
                 if self.model._instances[instance_id].networks[netobjkey].os_name != network:
                     continue
-                self.model._instances[instance_id].networks[netobjkey].os_address = os_dict[network]
+                known_addresses.add(self.model._instances[instance_id].networks[netobjkey].os_address)
+            missing_addresses = known_addresses.difference(os_dict[network])
+            extra_addresses = set(os_dict[network]).difference(known_addresses)
+            for netobjkey in self.model._instances[instance_id].networks.keys():
+                if self.model._instances[instance_id].networks[netobjkey].os_name != network:
+                    continue
+                if not self.model._instances[instance_id].networks[netobjkey].os_address in extra_addresses:
+                    continue
+                del self.model._instances[instance_id].networks[netobjkey]
+            for address in missing_addresses:
+                networkid = str(uuid.uuid1())
+                netobj = model_instance_network()
+                netobj.os_name = network
+                netobj.os_address = address
+                self.model._instances[instance_id].networks[networkid] = netobj
 
     def update_instance(self, ro_server):
         metadata = {}
@@ -201,14 +219,14 @@ class view_mdl_update_nvclient(object):
 
         for key in updateset:
             self.model._sessions[session_id]._md_whenenv[key] = metadata[key]
-    
+
     def get_instances_booting(self):
         instance_id_booting = set()
         for instance_id in self.model._instances:
             if self.model._instances[instance_id].status == 'BUILD':
                 instance_id_booting.add(instance_id)
         return instance_id_booting
-    
+
     def update_instances_all(self):
         server_list = self.nova_con.servers.list()
         for server in server_list:
@@ -223,11 +241,11 @@ class view_mdl_update_nvclient(object):
             instance_id_booting = self.get_instances_booting()
         for instance_id in self.model._instances.keys():
             self.update_instance_network(instance_id)
-            
-            
-        
-            
-            
+
+
+
+
+
     def update(self):
 
         flavor_list = self.nova_con.flavors.list()

@@ -144,23 +144,30 @@ class view_buildup(nvclient_view_con.view_nvclient_con):
     def __init__(self, model):
         nvclient_view_con.view_nvclient_con.__init__(self,model)
         self.log = logging.getLogger("view.buildup")
+    
+    def get_addresses_filtered(self, network, pinged, sshed):
+        addresses = set()
+        for instance in self.model._instances.keys():
+            if not self.model.session_id in self.model._instances[instance].sessions:
+                continue
+            for net in self.model._instances[instance].networks.keys():
+                if self.model._instances[instance].networks[net].os_name != network:
+                    continue
+                if self.model._instances[instance].networks[net].pinged != pinged:
+                    continue
+                if self.model._instances[instance].networks[net].sshed != sshed:
+                    continue
+                addresses.add((instance, net, self.model._instances[instance].networks[net].os_address))
+        return addresses
 
     def debounce(self, state_filename):
         output_data = read_input(state_filename)
         os_updator = view_mdl_update_nvclient(self.model, self._nova_con)
         os_updator.update()
-
-        self.log.debug("here")
-        #print output_data
-        # Get full list of addresses
-        addresses = set()
-        for instace in output_data:
-            for netwrok in output_data[instace]['OS_NETWORKS']:
-                address_list = output_data[instace]['OS_NETWORKS'][netwrok]
-                for address in address_list:
-                    addresses.add(address)
+        network2debounce = "fixed"
+        notpingged = self.get_addresses_filtered(network2debounce,False,False)
+        print notpingged
         pinged = pinghosts(addresses)
-        self.log.debug("pinged=%s" % ( pinged))
         # Remove all address from known hosts
         for address in pinged:
             subprocess.call(["ssh-keygen", "-R", address])
